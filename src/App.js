@@ -6,6 +6,7 @@ import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { Chips } from 'primereact/chips';
 import moment from 'moment';
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
@@ -21,12 +22,15 @@ function App() {
   const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal } = useForm();
   const [open, setOpen] = useState('0');
   const date = moment().format('yyyy-MM-DD');
+  const [tags, setTags] = useState([]);
+  const [filteredNotes, setFilteredNotes] = useState([]);
+  const [selectedTag, setSelectedTag] = useState(null);
 
   useEffect(() => {
     fetchNotes();
   }, []);
 
-  const fetchNotes = async () => {
+  const fetchNotes2 = async () => {
     try {
       const res = await axios.get(backendUrl, { headers: { 'X-API-KEY': apiKey } });
       setNotes(res.data);
@@ -34,21 +38,47 @@ function App() {
       console.error('Error fetching notes:', error);
     }
   };
+  
+  const fetchNotes = async () => {
+    try {
+      const res = await axios.get(backendUrl, { headers: { 'X-API-KEY': apiKey } });
+      setNotes(res.data);
+      setFilteredNotes(res.data);
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+    }
+  };
 
-  const submit = async (note) => {
+  const filterNotesByTag = (tag, notesToFilter) => {
+    const filtered = tag ? notesToFilter.filter(note => note.tags.some(t => t.label === tag)) : notesToFilter;
+    setFilteredNotes(filtered);
+  };
+
+  const submit = async (data) => {
+    const noteData = {
+      ...data,
+      updateDate: date,
+      tags: tags.map(tag => ({ label: tag }))
+    };
+  
     try {
       let res;
       if (isEditMode) {
-        res = await axios.put(`${backendUrl}/${note.id}`, {...note, updateDate: date}, { headers: { 'X-API-KEY': apiKey } });
-        setNotes(notes.map(n => (n.id === note.id ? res.data : n)));
+        res = await axios.put(`${backendUrl}/${data.id}`, noteData, { headers: { 'X-API-KEY': apiKey } });
+        const updatedNotes = notes.map(n => (n.id === data.id ? res.data : n));
+        setNotes(updatedNotes);
+        filterNotesByTag(selectedTag, updatedNotes); 
       } else {
-        res = await axios.post(backendUrl, {...note, updateDate: date}, { headers: { 'X-API-KEY': apiKey } });
-        setNotes([...notes, res.data]);
+        res = await axios.post(backendUrl, noteData, { headers: { 'X-API-KEY': apiKey } });
+        const updatedNotes = [...notes, res.data];
+        setNotes(updatedNotes);
+        filterNotesByTag(selectedTag, updatedNotes);
       }
     } catch (error) {
       console.error('Error adding/editing note:', error);
     }
-    resetModalForm({ title: '', content: '' });
+    resetModalForm({ title: '', content: '', tags: [] });
+    setTags([]);
     setIsVisible(false);
     setIsEditMode(false);
   };
@@ -57,13 +87,17 @@ function App() {
     setIsVisible(true);
     setIsEditMode(true);
     const note = notes.find(n => n.id === id);
+    const noteTags = note.tags.map(tag => tag.label);
+    setTags(noteTags);
     resetModalForm(note);
   };  
 
   const handleDeleteNote = async (id) => {
     try {
       await axios.delete(`${backendUrl}/${id}`, { headers: { 'X-API-KEY': apiKey } });
-      setNotes(notes.filter(note => note.id !== id));
+      const updatedNotes = notes.filter(note => note.id !== id);
+      setNotes(updatedNotes);
+      filterNotesByTag(selectedTag, updatedNotes);
     } catch (error) {
       console.error('Error deleting note:', error);
     }
@@ -90,9 +124,20 @@ function App() {
     };
   }, []);
 
+  const handleTagClick = (tag) => {
+    setSelectedTag(tag);
+    setFilteredNotes(notes.filter(note => note.tags.some(t => t.label === tag)));
+    // console.log("handletagclick function: filtering by", tag, filteredNotes)
+  };
+
+  const clearFilter = () => {
+    setSelectedTag(null);
+    setFilteredNotes(notes);
+  };
+
   return (
     <div>
-      <h1><center>My Notes</center></h1><br></br>
+      <h2><center>Welcome back, Jeroen</center></h2><br></br>
       <Button
         label="Add Note"
         icon="pi pi-plus"
@@ -100,6 +145,12 @@ function App() {
         onClick={() => setIsVisible(true)}
         style={{ width: '100%', backgroundColor:'rgba(255, 255, 255, 0.33)' }}
       /><br></br><br></br>
+      {selectedTag && (
+        <div>
+          <Button style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
+          <span>&nbsp;Filtering by tag: {selectedTag}</span>
+        </div>
+      )}
       <Dialog
         header={isEditMode ? "Edit note" : "Create note"}
         visible={isVisible}
@@ -121,15 +172,25 @@ function App() {
             style={{ width: '95%', height: '20vh', borderRadius: '5px', marginTop: '5px' }}
             name="content"
             className="p-inputtext-sm"
+            autoResize 
             placeholder="Text"
+            rows={8}
             {...registerModal('content', { required: 'Required' })}
+          />
+          <Chips
+            style={{ width: '95%', borderRadius: '5px', marginTop: '5px' }}
+            value={tags}
+            onChange={(e) => setTags(e.value)}
+            separator=","
+            placeholder="Add tags"
+            className="p-inputtext-sm"
           />
           <Button style={{ marginTop: '28px' }} size="small" type="submit" label="Save" />
         </form>
       </Dialog>
 
       <UncontrolledAccordion flush open={open} >
-        {notes.map((note, i) => (
+        {filteredNotes.map((note, i) => (
           <AccordionItem key={`entity-${i}`}>
             <AccordionHeader className="notes-accordion-button" targetId={`entity-${i}`}>
               <div className="notes-accordion-button">
@@ -151,6 +212,9 @@ function App() {
             <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
               <div>
                 {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}>&nbsp;&nbsp;{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
+              </div>
+              <div style={{ marginTop: '15px' }}>
+              {note.tags.map(tag =>  <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}><span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span></a>)}
               </div>
             </AccordionBody>
           </AccordionItem>

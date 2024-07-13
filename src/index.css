@@ -112,3 +112,24 @@ body {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
 }
+
+.badge {
+  color: white;
+  border-radius: 50rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  margin-right: 7px;
+  padding-left: 0.65em;
+  padding-right: 0.65em;
+  padding-top: 0.35em;
+  padding-bottom: 0.35em;
+  font-size: 0.9em;
+  
+}
+.badge.bg-light {
+  background-color: rgba(79, 70, 229, 0.5) !important;
+}
+
+.badge.bg-light:hover {
+  border: 2px solid rgba(255, 255, 255, 1);
+  cursor: pointer;
+}
