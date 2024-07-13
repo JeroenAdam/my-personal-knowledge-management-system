@@ -148,7 +148,7 @@ function App() {
                 ></span>
               </div>
             </AccordionHeader>
-            <AccordionBody className="notes-menu-accordion-body" accordionId={`entity-${i}`}>
+            <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
               <div>
                 {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}>&nbsp;&nbsp;{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
               </div>
