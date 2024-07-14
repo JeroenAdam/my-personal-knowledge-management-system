@@ -25,19 +25,15 @@ function App() {
   const [tags, setTags] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     fetchNotes();
   }, []);
 
-  const fetchNotes2 = async () => {
-    try {
-      const res = await axios.get(backendUrl, { headers: { 'X-API-KEY': apiKey } });
-      setNotes(res.data);
-    } catch (error) {
-      console.error('Error fetching notes:', error);
-    }
-  };
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', isDarkMode);
+  }, [isDarkMode]);
   
   const fetchNotes = async () => {
     try {
@@ -135,9 +131,17 @@ function App() {
     setFilteredNotes(notes);
   };
 
+  const handleThemeChange = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <div>
-      <h2><center>Welcome back, Jeroen</center></h2><br></br>
+    <div><br></br>
+      <header><h2>Welcome back, Jeroen</h2>
+       <label className="theme-switch">
+          <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
+          <span className="slider round"></span>
+        </label></header><br></br>
       <Button
         label="Add Note"
         icon="pi pi-plus"
@@ -148,7 +152,7 @@ function App() {
       {selectedTag && (
         <div>
           <Button style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <span>&nbsp;Filtering by tag: {selectedTag}</span>
+          <h4>&nbsp;Filtering by tag: {selectedTag}</h4>
         </div>
       )}
       <Dialog
@@ -184,7 +188,7 @@ function App() {
             onChange={(e) => setTags(e.value)}
             separator=","
             placeholder="Add tags"
-            className="p-inputtext-sm"
+            className="p-chips-input-token"
           />
           <Button style={{ marginTop: '28px' }} size="small" type="submit" label="Save" />
         </form>
