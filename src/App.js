@@ -157,6 +157,7 @@ function App() {
         onHide={() => {
           setIsEditMode(false);
           setIsVisible(false);
+          setTags([]);
           resetModalForm({ title: '', content: '' });
         }}
       >
