@@ -8,7 +8,6 @@ body {
   background-color: rgba(97, 86, 227, 0.25);
   color: #000;
 }
-
 body.dark-mode {
   background-color: #121212;
 }
@@ -39,6 +38,10 @@ body.dark-mode a {
     max-width: 100%;
     padding: 0 1rem;
   }
+}
+
+a {
+  color: white;
 }
 
 h4 {
@@ -153,22 +156,22 @@ h4 {
 .dark-mode .p-dialog-header,
 .dark-mode .p-dialog-content {
   color: #e0e0e0;
-  background-color: #555;
+  background-color: #2B2B2B;
 }
 .dark-mode .accordion-button,
 .dark-mode .notes-accordion-button {
-  background-color: #3C3C3C;
+  background-color: #2B2B2B;
 }
 .dark-mode .notes-header-edit,
-.dark-mode .notes-menu-accordion-body,
+.dark-mode .notes-menu-accordion-body,  
 .dark-mode .badge,
 .dark-mode .badge.bg-light {
-  background-color: #333;
+  background-color: #222;
   color: #e0e0e0;
-  border-color: #555;
+  border-color: # ;
 }
 .dark-mode .badge.bg-light.rounded-pill{
-  background-color: #3C3C3C;
+  background-color: #2B2B2B;
   color: #e0e0e0;
   border-color: #555;
 }
@@ -183,31 +186,45 @@ h4 {
 .dark-mode .badge.bg-light:hover {
   border-color: #fff;
 }
-.p-chips-multiple-container {
+.p-chips .p-chips-multiple-container {
   background-color: white;
+  padding: 0.25rem 0.75rem;
+}
+.p-chips-input-token input
+{
+  font-size: 0.86rem;
+}
+.p-chips-token
+{
+  padding: 0.25rem 0.75rem;
 }
 .dark-mode .p-inputtext-sm,
 .dark-mode .p-chips .p-chips-multiple-container,
 .dark-mode .p-chips-multiple-container
 {
-  color: white;
+  color: #E0E0E0;
   border-color: #999;
-  background-color: #333;
+  background-color: #222;
+}
+.dark-mode .p-chips .p-chips-multiple-container {
+  padding: 0.25rem 0.75rem;
 }
 .dark-mode .p-inputtext-sm:hover,
 .dark-mode .p-chips .p-chips-multiple-container:hover,
 .dark-mode .p-chips-multiple-container:hover
 {
   border-color: white;
-  background-color: #333;
+  background-color: #222;
 }
 .dark-mode .p-chips-input-token input
 {
-  color: white;
+  color: #E0E0E0;
+  font-size: 0.86rem;
 }
 .dark-mode .p-chips-token
 {
   background-color: #bbb;
+  padding: 0.25rem 0.75rem;
 }
 .dark-mode .p-chips-token-label
 {
@@ -270,10 +287,10 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(14px);
-}
+} 
 
-.p-button {
-  background: #6366f1;
+.p-button.p-component.p-button-outlined {
+  background-color: rgba(255, 255, 255, 0.3);
   border: 1px solid #6366f1;
   padding: 0.75rem 1.25rem;
   font-size: 1rem;
@@ -281,24 +298,32 @@ input:checked + .slider:before {
   border-radius: 6px;
 }
 
-.p-button:hover {
-  background-color: #4f52e5;
-  border-color: #4f52e5;
+.p-button.p-component.p-button-outlined:hover {
+  background-color: rgba(255, 255, 255, 0.4);
 }
 
 .p-button:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);  
 }
 
 body.dark-mode .p-button {
-  color: #ffffff;
-  background: #222222;
+  background-color: #111;
   border: 1px solid #999999;
 }
 
 body.dark-mode .p-button:hover {
-  background-color: #333333;
+  background-color: #222;
+  border-color: #999999;
+}
+
+body.dark-mode .p-button.p-component.p-button-outlined {
+  background-color: #333;
+  border: 1px solid #999999;
+}
+
+body.dark-mode .p-button.p-component.p-button-outlined:hover {
+  background-color: #444;
   border-color: #999999;
 }
 

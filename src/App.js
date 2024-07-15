@@ -8,6 +8,7 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
 import moment from 'moment';
+import Linkify from 'react-linkify';
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -136,6 +137,12 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
+  const linkDecorator = (href, text, key) => (
+    <a href={href} key={key} target="_blank" rel="noopener noreferrer">
+      {text}
+    </a>
+  );
+
   return (
     <div><br></br>
       <header><h2>Welcome back, Jeroen</h2>
@@ -148,7 +155,7 @@ function App() {
         icon="pi pi-plus"
         outlined
         onClick={() => setIsVisible(true)}
-        style={{ width: '100%', backgroundColor:'rgba(255, 255, 255, 0.33)' }}
+        style={{ width: '100%' }}
       /><br></br><br></br>
       {selectedTag && (
         <div>
@@ -216,9 +223,9 @@ function App() {
               </div>
             </AccordionHeader>
             <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
-              <div>
+              <Linkify componentDecorator={linkDecorator}>
                 {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}>&nbsp;&nbsp;{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
-              </div>
+              </Linkify>
               <div style={{ marginTop: '15px' }}>
               {note.tags.map(tag =>  <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}><span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span></a>)}
               </div>
