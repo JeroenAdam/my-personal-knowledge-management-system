@@ -68,12 +68,24 @@ h4 {
   white-space: pre-line;
 }
 
+span.notes-accordion-button.notes-header-link {
+  width: 20px;
+  color: white;
+  position: absolute;
+  top: 2px;
+  opacity: 0.2;
+}
+span.notes-accordion-button.notes-header-link:hover {
+  opacity: 1;
+}
+
 .notes-header-edit {
   color: rgba(255, 255, 255, 0.9);
   opacity: 0.5;
 }
 .notes-header-edit:hover {
   opacity: 1;
+  cursor: pointer;
 }
 
 .notes-header-delete {
@@ -85,10 +97,11 @@ h4 {
   opacity: 0.2;
   position: absolute;
   top: 1px;
-  right: -25px;
+  right: -55px;
 }
 .notes-header-delete:hover {
   opacity: 1;
+  cursor: pointer;
 }
 
 .notes-accordion-button {
@@ -168,7 +181,6 @@ h4 {
 .dark-mode .badge.bg-light {
   background-color: #222;
   color: #e0e0e0;
-  border-color: # ;
 }
 .dark-mode .badge.bg-light.rounded-pill{
   background-color: #2B2B2B;
@@ -329,4 +341,9 @@ body.dark-mode .p-button.p-component.p-button-outlined:hover {
 
 body.dark-mode .p-button:focus {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.footer-link {
+  color: black;
+  text-decoration: underline;
 }

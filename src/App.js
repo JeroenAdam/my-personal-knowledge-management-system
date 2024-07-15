@@ -16,6 +16,7 @@ import 'primeicons/primeicons.css';
 
 function App() {
   const backendUrl = 'http://localhost:8080/api/v1/notes';
+  const publicUrl = 'http://localhost:3000';
   const apiKey = 'supersecret';
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
@@ -27,6 +28,8 @@ function App() {
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSingleNote, setIsSingleNote] = useState(false);
+  const [needRerender, setNeedRerender] = useState(0);
 
   useEffect(() => {
     fetchNotes();
@@ -46,10 +49,38 @@ function App() {
     }
   };
 
+  const fetchOneNote = async (id) => {
+    if (isSingleNote) {
+      try {
+        const res = await axios.get(backendUrl+"/"+id, { headers: { 'X-API-KEY': apiKey } });
+        setIsSingleNote(false);
+        filterSingleNote([res.data]);
+        setSelectedTag(null);
+      } catch (error) {
+        console.error('Error fetching note:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener('hashchange', loadNoteFromURL);
+    loadNoteFromURL(); // Load note on initial render
+
+    return () => {
+      window.removeEventListener('hashchange', loadNoteFromURL);
+    };
+  }, [needRerender]);
+
   const filterNotesByTag = (tag, notesToFilter) => {
     const filtered = tag ? notesToFilter.filter(note => note.tags.some(t => t.label === tag)) : notesToFilter;
     setFilteredNotes(filtered);
   };
+
+  const filterSingleNote = (note) => {
+    setFilteredNotes(note);
+    window.history.pushState(null, null, publicUrl);
+  };
+
 
   const submit = async (data) => {
     const noteData = {
@@ -130,19 +161,52 @@ function App() {
 
   const clearFilter = () => {
     setSelectedTag(null);
+    setNeedRerender(0);
     setFilteredNotes(notes);
+    const hash = window.location.hash;
+    if (hash.startsWith('#note-')) {
+      window.location.replace(publicUrl);
+    } 
   };
 
   const handleThemeChange = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  const linkDecorator = (href, text, key) => (
-    <a href={href} key={key} target="_blank" rel="noopener noreferrer">
-      {text}
-    </a>
-  );
+  const linkDecorator = (href, text, key) => {
+    if (href.includes(publicUrl)) {
+      return (
+        <a href={href} key={key}>
+          {text}
+        </a>
+      );
+    } 
+    return (
+      <a href={href} key={key} target="_blank" rel="noopener noreferrer">
+        {text}
+      </a>
+    );
+  };
 
+  const loadNoteFromURL = () => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#note-')) {
+      const noteId = parseInt(hash.replace('#note-', ''), 10);
+      setIsSingleNote(true);
+      fetchOneNote(noteId);
+      setNeedRerender(noteId);
+      // console.log("id of last note:", needRerender, "compared to current from url: ", noteId);
+      return;
+    }   
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => { }).catch(err => {
+      console.error('Could not copy text: ', err);
+    });
+  };
+
+  
   return (
     <div><br></br>
       <header><h2>Welcome back, Jeroen</h2>
@@ -160,9 +224,15 @@ function App() {
       {selectedTag && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;Filtering by tag: {selectedTag}</h4>
+          <h4>&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
         </div>
       )}
+      {needRerender != 0 && !selectedTag && (
+        <div>
+          <Button icon="pi pi-filter-slash" style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
+          <h4>&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4>
+        </div>
+      )}      
       <Dialog
         header={isEditMode ? "Edit note" : "Create note"}
         visible={isVisible}
@@ -220,8 +290,13 @@ function App() {
                       handleDeleteNote(note.id);
                     }}
                 ></span>
+                <span style={{ marginLeft: '0.75rem', cursor: 'pointer', PaddingTop: '20px' }}className="notes-accordion-button notes-header-link"
+                    onClick={() => copyToClipboard(publicUrl+"/#note-"+note.id)}
+                ><i className="pi pi-link"></i>
+                </span>
               </div>
             </AccordionHeader>
+
             <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
               <Linkify componentDecorator={linkDecorator}>
                 {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}>&nbsp;&nbsp;{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
@@ -240,7 +315,7 @@ function App() {
         )
       }
       <br></br><br></br><center><p>Contact the <a href="https://www.adambahri.com/contact" target="_blank" rel="noopener noreferrer">
-      <span>author</span></a> of this app</p></center>
+      <span className='footer-link'>author</span></a> of this app</p></center>
     </div>
   );
 }
