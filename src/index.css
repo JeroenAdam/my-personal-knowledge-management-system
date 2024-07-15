@@ -42,7 +42,7 @@ body.dark-mode a {
 }
 
 h4 {
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .p-dialog {
@@ -167,6 +167,11 @@ h4 {
   color: #e0e0e0;
   border-color: #555;
 }
+.dark-mode .badge.bg-light.rounded-pill{
+  background-color: #3C3C3C;
+  color: #e0e0e0;
+  border-color: #555;
+}
 .dark-mode .notes-header-delete {
   background-color: gray;
   opacity: 0.3;
@@ -186,11 +191,23 @@ h4 {
 .dark-mode .p-chips-multiple-container
 {
   color: white;
+  border-color: #999;
+  background-color: #333;
+}
+.dark-mode .p-inputtext-sm:hover,
+.dark-mode .p-chips .p-chips-multiple-container:hover,
+.dark-mode .p-chips-multiple-container:hover
+{
+  border-color: white;
   background-color: #333;
 }
 .dark-mode .p-chips-input-token input
 {
   color: white;
+}
+.dark-mode .p-chips-token
+{
+  background-color: #bbb;
 }
 .dark-mode .p-chips-token-label
 {
@@ -248,7 +265,7 @@ header h2{
 }
 
 input:checked + .slider {
-  background-color: #ccc;
+  background-color: #666;
 }
 
 input:checked + .slider:before {

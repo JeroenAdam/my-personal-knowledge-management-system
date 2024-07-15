@@ -124,6 +124,7 @@ function App() {
     setSelectedTag(tag);
     setFilteredNotes(notes.filter(note => note.tags.some(t => t.label === tag)));
     // console.log("handletagclick function: filtering by", tag, filteredNotes)
+    scrollToTop();
   };
 
   const clearFilter = () => {
@@ -151,7 +152,7 @@ function App() {
       /><br></br><br></br>
       {selectedTag && (
         <div>
-          <Button style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
+          <Button icon="pi pi-filter-slash" style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
           <h4>&nbsp;Filtering by tag: {selectedTag}</h4>
         </div>
       )}
