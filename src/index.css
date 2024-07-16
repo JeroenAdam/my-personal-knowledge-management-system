@@ -14,8 +14,7 @@ body.dark-mode {
 body.dark-mode h2,
 body.dark-mode h4,
 body.dark-mode p,
-body.dark-mode span,
-body.dark-mode a {
+body.dark-mode span {
   color: #e0e0e0;
 }
 @media (min-width: 900px) {
@@ -41,8 +40,12 @@ body.dark-mode a {
 }
 
 a {
-  color: white;
+  color: #c7d2fe;
 }
+a:hover {
+  color: #d0e1fd;
+}
+
 
 h4 {
   margin-top: 4px;
@@ -50,17 +53,12 @@ h4 {
 
 .p-dialog {
   width: 90vw;
-  max-width: 700px;
+  max-width: 750px;
   margin: auto;
-}
-@media (min-width: 600px) {
-  .p-dialog {
-    width: 80vw;
-  }
 }
 @media (min-width: 900px) {
   .p-dialog {
-    width: 70vw;
+    width: 80vw;
   }
 }
 
@@ -186,6 +184,9 @@ span.notes-accordion-button.notes-header-link:hover {
   background-color: #2B2B2B;
   color: #e0e0e0;
   border-color: #555;
+}
+.dark-mode .badge.bg-light.rounded-pill:hover{
+  border-color: #c7d2fe;
 }
 .dark-mode .notes-header-delete {
   background-color: gray;

@@ -245,14 +245,14 @@ function App() {
       >
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
-            style={{ width: '95%', borderRadius: '5px', marginTop: '5px', marginBottom: '5px' }}
+            style={{ width: '99%', borderRadius: '5px', marginTop: '5px', marginBottom: '5px' }}
             name="title"
             placeholder="Title"
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
           />
           <InputTextarea
-            style={{ width: '95%', height: '20vh', borderRadius: '5px', marginTop: '5px' }}
+            style={{ width: '99%', height: '20vh', borderRadius: '5px', marginTop: '5px' }}
             name="content"
             className="p-inputtext-sm"
             autoResize 
@@ -261,7 +261,7 @@ function App() {
             {...registerModal('content', { required: 'Required' })}
           />
           <Chips
-            style={{ width: '95%', borderRadius: '5px', marginTop: '5px' }}
+            style={{ width: '99%', borderRadius: '5px', marginTop: '5px' }}
             value={tags}
             onChange={(e) => setTags(e.value)}
             separator=","
