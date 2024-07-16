@@ -13,8 +13,7 @@ body.dark-mode {
 }
 body.dark-mode h2,
 body.dark-mode h4,
-body.dark-mode p,
-body.dark-mode span {
+body.dark-mode p {
   color: #e0e0e0;
 }
 @media (min-width: 900px) {
@@ -37,6 +36,9 @@ body.dark-mode span {
     max-width: 100%;
     padding: 0 1rem;
   }
+}
+body.dark-mode span {
+  color: #fff;
 }
 
 a {
@@ -132,7 +134,7 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 
 .notes-menu-accordion-body {
-  background-color: rgba(97, 86, 227, 0.78);
+  background-color: rgba(97, 86, 227, 0.80);
   color: white;
   padding-top: 8px;
   padding: 12px;
@@ -141,6 +143,9 @@ span.notes-accordion-button.notes-header-link:hover {
   font-size: 0.9rem;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
+}
+.notes-menu-accordion-body:hover {
+  background-color: rgba(97, 86, 227, 0.76);
 }
 
 .badge {
@@ -152,11 +157,12 @@ span.notes-accordion-button.notes-header-link:hover {
   padding-right: 0.65em;
   padding-top: 0.35em;
   padding-bottom: 0.35em;
-  font-size: 0.9em;
+  font-size: 0.9em; 
 }
 
 .badge.bg-light {
   background-color: rgba(79, 70, 229, 0.5);
+  line-height: 2.6;
 }
 
 .badge.bg-light:hover {
@@ -165,6 +171,7 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 
 .dark-mode .p-dialog-header,
+.dark-mode .notes-header-edit,
 .dark-mode .p-dialog-content {
   color: #e0e0e0;
   background-color: #2B2B2B;
@@ -173,17 +180,21 @@ span.notes-accordion-button.notes-header-link:hover {
 .dark-mode .notes-accordion-button {
   background-color: #2B2B2B;
 }
-.dark-mode .notes-header-edit,
+
 .dark-mode .notes-menu-accordion-body,  
 .dark-mode .badge,
 .dark-mode .badge.bg-light {
   background-color: #222;
   color: #e0e0e0;
 }
-.dark-mode .badge.bg-light.rounded-pill{
+.dark-mode .notes-header-edit:hover,
+.dark-mode .notes-menu-accordion-body:hover {
+  background-color: #272727;
+}
+.dark-mode .badge.bg-light.rounded-pill {
   background-color: #2B2B2B;
   color: #e0e0e0;
-  border-color: #555;
+  border-color: #555; 
 }
 .dark-mode .badge.bg-light.rounded-pill:hover{
   border-color: #c7d2fe;
@@ -209,7 +220,9 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 .p-chips-token
 {
+  margin-top: 2px;
   padding: 0.25rem 0.75rem;
+  margin-bottom: 2px;
 }
 .dark-mode .p-inputtext-sm,
 .dark-mode .p-chips .p-chips-multiple-container,
@@ -250,6 +263,13 @@ header {
   align-items: center;
 }
 
+.header .home {
+  color: white;
+}
+.home:hover {
+  cursor: pointer;
+}
+
 header h2{
   flex: 1;
   text-align: center;
@@ -261,7 +281,6 @@ header h2{
   display: inline-block;
   width: 34px;
   height: 20px;
-  margin-left: 20px;
 }
 
 .theme-switch input {
@@ -347,4 +366,35 @@ body.dark-mode .p-button:focus {
 .footer-link {
   color: black;
   text-decoration: underline;
+}
+
+.drop-zone {
+  font-size: 1rem; 
+  color: #AAA;
+  background-color: rgba(75, 85, 99, 0.1);;
+  border: 2px dashed #DDD;
+  border-radius: 6px;
+  padding: 5px;
+  text-align: center;
+  cursor: pointer;  
+  width: 99%;
+  height: 5vh;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.dark-mode .drop-zone {
+  font-size: 0.9rem;
+  padding-top: 7px;
+  background-color: #333;
+  border: 2px dashed #777;
+}
+
+.images {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+}
+.dark-mode .images {
+  border: 2px solid #555;
 }

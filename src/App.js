@@ -3,12 +3,12 @@ import axios from 'axios';
 import { UncontrolledAccordion, AccordionBody, AccordionHeader, AccordionItem } from 'reactstrap';
 import { useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
 import moment from 'moment';
-import Linkify from 'react-linkify';
+import Linkify from 'react-linkify';  
+import TextAndImages from './TextAndImages'; 
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -21,7 +21,7 @@ function App() {
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal } = useForm();
+  const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal, setValue } = useForm();
   const [open, setOpen] = useState('0');
   const date = moment().format('yyyy-MM-DD');
   const [tags, setTags] = useState([]);
@@ -80,8 +80,7 @@ function App() {
     setFilteredNotes(note);
     window.history.pushState(null, null, publicUrl);
   };
-
-
+  
   const submit = async (data) => {
     const noteData = {
       ...data,
@@ -174,6 +173,12 @@ function App() {
   };
 
   const linkDecorator = (href, text, key) => {
+    if (href.endsWith('.png')) {
+      return (
+        <img className="images" src={href} alt={text} key={key} headers={{ 'X-API-KEY': 'supersecret' }}
+         />  
+      );
+    }  
     if (href.includes(publicUrl)) {
       return (
         <a href={href} key={key}>
@@ -206,11 +211,18 @@ function App() {
     });
   };
 
-  
+  const [text, setText] = useState('');
+  const handleTextChange = (newText) => {
+    setText(newText);
+    //console.log("parent component has received and set new text", newText)
+  };
+
   return (
     <div><br></br>
-      <header><h2>Welcome back, Jeroen</h2>
-       <label className="theme-switch">
+      <header>
+       <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px' }} className="home pi pi-home"></span>
+       <h2>Welcome back, Jeroen</h2>
+       <label style={{ marginTop: '4px' }}className="theme-switch">
           <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
           <span className="slider round"></span>
         </label></header><br></br>
@@ -241,6 +253,7 @@ function App() {
           setIsVisible(false);
           setTags([]);
           resetModalForm({ title: '', content: '' });
+          setText("");
         }}
       >
         <form onSubmit={handleSubmitModal(submit)}>
@@ -251,15 +264,7 @@ function App() {
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
           />
-          <InputTextarea
-            style={{ width: '99%', height: '20vh', borderRadius: '5px', marginTop: '5px' }}
-            name="content"
-            className="p-inputtext-sm"
-            autoResize 
-            placeholder="Text"
-            rows={8}
-            {...registerModal('content', { required: 'Required' })}
-          />
+          <TextAndImages initialText={text} setValue={setValue} onTextChange={handleTextChange} registerModal={registerModal} />
           <Chips
             style={{ width: '99%', borderRadius: '5px', marginTop: '5px' }}
             value={tags}
@@ -299,9 +304,9 @@ function App() {
 
             <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
               <Linkify componentDecorator={linkDecorator}>
-                {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}>&nbsp;&nbsp;{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
+                {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}><p></p>{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
               </Linkify>
-              <div style={{ marginTop: '15px' }}>
+              <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
               {note.tags.map(tag =>  <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}><span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span></a>)}
               </div>
             </AccordionBody>
