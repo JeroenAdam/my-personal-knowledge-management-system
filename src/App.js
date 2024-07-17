@@ -132,6 +132,7 @@ function App() {
     const noteTags = note.tags.map(tag => tag.label);
     setTags(noteTags);
     resetModalForm(note);
+    setText(note.content);
   };  
 
   const handleDeleteNote = async (id) => {
@@ -286,7 +287,7 @@ function App() {
           <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
         </div>
       )}
-      {needRerender != 0 && !selectedTag && (
+      {needRerender !== 0 && !selectedTag && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
           <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4>
