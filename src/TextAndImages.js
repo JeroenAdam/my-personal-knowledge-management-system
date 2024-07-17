@@ -71,7 +71,7 @@ const TextAndImages = ({ initialText, onTextChange, registerModal, setValue }) =
         className="p-inputtext-sm"
         autoResize 
         placeholder="Text"
-        rows={8}
+        rows={10}
       />
       <div className="drop-zone" {...getRootProps()} onClick={handleClick}>
         <input {...getInputProps()} ref={fileInputRef} />

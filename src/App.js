@@ -8,11 +8,26 @@ import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
 import moment from 'moment';
 import Linkify from 'react-linkify';  
-import TextAndImages from './TextAndImages'; 
+import TextAndImages from './TextAndImages';
+import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
+import {
+  ErrorBoundary,
+  Facet,
+  SearchProvider,
+  SearchBox,
+  Results,
+  PagingInfo,
+  ResultsPerPage,
+  Paging,
+  Sorting,
+  WithSearch,
+} from '@elastic/react-search-ui';
+import { Layout, Paging as PagingView, ResultsPerPage as ResultsPerPageView } from '@elastic/react-search-ui-views';
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
+import 'primeflex/primeflex.css';
 
 function App() {
   const backendUrl = 'http://localhost:8080/api/v1/notes';
@@ -80,7 +95,7 @@ function App() {
     setFilteredNotes(note);
     window.history.pushState(null, null, publicUrl);
   };
-  
+
   const submit = async (data) => {
     const noteData = {
       ...data,
@@ -185,7 +200,7 @@ function App() {
           {text}
         </a>
       );
-    } 
+    }
     return (
       <a href={href} key={key} target="_blank" rel="noopener noreferrer">
         {text}
@@ -217,32 +232,64 @@ function App() {
     //console.log("parent component has received and set new text", newText)
   };
 
+  const connector = new ElasticsearchAPIConnector({
+    host: 'https://app.adambahri.com:1116',
+    index: 'resource',
+    apiKey: 'dm5Sc25Za0JuZDBCbHdnb19hWWQ6LUdjdXR3WE9TRWl1WFhDVUZjMl83dw==',
+  });
+
+  const config = {
+    /* debug: true, */
+    searchQuery: {
+      search_fields: {
+        title: { weight: 3 },
+        content: {},
+      },
+      result_fields: {
+        id: {},
+        title: { snippet: { size: 100 } },
+      },  
+    },
+    apiConnector: connector,
+  };
+
   return (
     <div><br></br>
       <header>
-       <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px' }} className="home pi pi-home"></span>
+       <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px', marginLeft: '15px' }} className="home pi pi-home"></span>
        <h2>Welcome back, Jeroen</h2>
        <label style={{ marginTop: '4px' }}className="theme-switch">
           <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
           <span className="slider round"></span>
-        </label></header><br></br>
+       </label></header><br></br>
+       { // <SearchProvider config={config}>
+          // <SearchBox
+          //    className="searchlabel show-cancel-button"
+          //    inputProps={{ key: 'password', placeholder: 'Search...', id: 'search', type: 'search' }}
+          //    autocompleteMinimumCharacters={3}
+          //    /* autocompleteResults={{ linkTarget: "_blank", sectionTitle: "Results", titleField: "title", urlField: "url", shouldTrackClickThrough: true }} */
+          //    autocompleteSuggestions={false}
+          //    searchAsYouType
+          //  />
+          // </SearchProvider>
+       }
       <Button
         label="Add Note"
         icon="pi pi-plus"
         outlined
         onClick={() => setIsVisible(true)}
-        style={{ width: '100%' }}
+        style={{ width: '96%', position: 'relative', left: '14px' }}
       /><br></br><br></br>
       {selectedTag && (
         <div>
-          <Button icon="pi pi-filter-slash" style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
+          <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
+          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
         </div>
       )}
       {needRerender != 0 && !selectedTag && (
         <div>
-          <Button icon="pi pi-filter-slash" style={{ width: '100%', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4>
+          <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
+          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4>
         </div>
       )}      
       <Dialog
