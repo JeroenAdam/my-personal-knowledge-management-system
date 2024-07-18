@@ -132,7 +132,7 @@ function App() {
     const noteTags = note.tags.map(tag => tag.label);
     setTags(noteTags);
     resetModalForm(note);
-    setText(note.content);
+    if (id) {setText(note.content)}
   };  
 
   const handleDeleteNote = async (id) => {
@@ -290,7 +290,10 @@ function App() {
         label="Add Note"
         icon="pi pi-plus"
         outlined
-        onClick={() => setIsVisible(true)}
+        onClick={(e) => {
+          setText("");
+          setIsVisible(true)
+        }}
         style={{ width: '96%', position: 'relative', left: '14px' }}
       /><br></br><br></br>
       {selectedTag && (
