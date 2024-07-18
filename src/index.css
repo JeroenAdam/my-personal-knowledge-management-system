@@ -1,6 +1,6 @@
 body {
-  margin: 0 auto;
-  padding: 0 1rem;
+  margin: 0;
+  padding-right: 1rem;
   box-sizing: border-box;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
@@ -9,34 +9,60 @@ body {
   color: #000;
   overflow-y: scroll;
 }
-body.dark-mode {
+
+.container {
+  display: block;
+  width: 100%;
+  padding: 0;
+}
+
+.main {
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.sidebar {
+  padding: 1rem;
+  display: none; /* Hidden by default for mobile-first approach */
+}
+
+/* Media query for tablets and small desktops (min-width: 600px) */
+@media (min-width: 600px) {
+  .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0 1rem;
+  }
+}
+
+/* Media query for larger desktops (min-width: 900px) */
+@media (min-width: 900px) {
+  .container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 0rem;
+      max-width: 1200px;
+  }
+
+  .main {
+      margin-bottom: 0;
+  }
+
+  .sidebar {
+      display: block; /* Show sidebar for larger screens */
+  }
+}
+
+
+body.dark-mode,
+body.dark-mode .main,
+body.dark-mode .sidebar {
   background-color: #121212;
 }
 body.dark-mode h2,
 body.dark-mode h4,
 body.dark-mode p {
   color: #e0e0e0;
-}
-@media (min-width: 900px) {
-  body {
-    max-width: 850px;
-  }
-}
-@media (min-width: 800px) and (max-width: 899px) {
-  body {
-    max-width: 90%;
-  }
-}
-@media (min-width: 600px) and (max-width: 799px) {
-  body {
-    max-width: 90%;
-  }
-}
-@media (max-width: 599px) {
-  body {
-    max-width: 100%;
-    padding: 0 1rem;
-  }
 }
 body.dark-mode span {
   color: #fff;
@@ -101,7 +127,7 @@ body::-webkit-scrollbar {
 
 .p-dialog {
   width: 90vw;
-  max-width: 825px;
+  max-width: 880px;
   margin: auto;
 }
 @media (min-width: 900px) {
@@ -271,6 +297,7 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 .p-chips-token
 {
+  font-size: 0.9rem;
   margin-top: 2px;
   padding: 0.25rem 0.75rem;
   margin-bottom: 2px;
@@ -328,7 +355,7 @@ header h2{
 }
 
 label.theme-switch {
-  margin-right: 20px;
+  margin-right: 23px;
 
 }
 .theme-switch {
@@ -525,7 +552,7 @@ body.dark-mode .p-button:focus {
   position: relative;
   font-family: inherit;
   font-size: 16px;
-  width: 100%;
+  width: 99.5%;
 }
 .dark-mode .sui-search-box__text-input {
   color: white;
@@ -635,3 +662,28 @@ body.dark-mode .p-button:focus {
   height: 32px;
   width: 32px;
 } 
+
+.related-tags {
+  font-size: 0.9em; 
+  border: 1px solid #6366f1;
+  border-radius: 12px;
+  padding: 0.5rem;
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  width: 100%;
+}
+.dark-mode .related-tags {
+  border: 1px solid #666;
+}
+
+.related-tags-label {
+  color:#6366f1;
+  font-size: 0.8rem;
+  position: relative;
+  top: 12px;
+}
+.dark-mode .related-tags-label {
+  color: #666;
+}

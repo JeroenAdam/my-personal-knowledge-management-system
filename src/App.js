@@ -254,8 +254,20 @@ function App() {
     apiConnector: connector,
   };
 
+  const sidebarNote = filteredNotes;
+  const allTags = sidebarNote.reduce((acc, note) => {
+    note.tags.forEach(tag => {
+      if (!acc.some(t => t.label === tag.label)) {
+        acc.push(tag);
+      }
+    });
+    return acc;
+  }, []);
+  
+
   return (
-    <div><br></br>
+    <div class="container">
+     <div class="main"><br></br>
       <header>
        <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px', marginLeft: '15px' }} className="home pi pi-home"></span>
        <h2>Welcome back, Jeroen</h2>
@@ -369,7 +381,17 @@ function App() {
       }
       <br></br><br></br><center><p>Contact the <a href="https://www.adambahri.com/contact" target="_blank" rel="noopener noreferrer">
       <span className='footer-link'>author</span></a> of this app</p></center>
-    </div>
+      </div>
+        <div className="sidebar"><br></br><label className="related-tags-label">&nbsp;&nbsp;Related tags:</label>
+          <div className="related-tags">
+            {allTags.map(tag => (
+              <a key={`sidebar-tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
+                <span className="badge bg-light rounded-pill">{tag.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
   );
 }
 
