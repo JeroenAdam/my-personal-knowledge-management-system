@@ -343,8 +343,10 @@ function App() {
             <AccordionHeader className="notes-accordion-button" targetId={`entity-${i}`}>
               <div className="notes-accordion-button">
                 <span className="notes-header-edit"
-                    onClick={() => {
-                    handleEditNote(note.id);
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleEditNote(note.id);
                     }}
                 ><i className="pi pi-pencil"></i></span>
                 <span style={{ marginLeft: '0.5rem' }}>{note.title}</span>
