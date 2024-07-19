@@ -264,10 +264,30 @@ function App() {
     return acc;
   }, []);
   
+  const enhanceNoteText = (text) => {
+    const regex = /(```[\s\S]*?```|\*\*.*?\*\*|__.*?__)/g;
+    const parts = text.split(regex);
+  
+    return parts.map((part, index) => {
+      if (part.startsWith('```') && part.endsWith('```')) {
+        const codeContent = part.slice(3, -3).replace(/^\n+|\n+$/g, '').trim();
+        return (
+          <pre key={index} className="code-block">
+            <code>{codeContent}</code>
+          </pre>
+        );
+      } else if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      } else if (part.startsWith('__') && part.endsWith('__')) {
+        return <span key={index} style={{ textDecoration: 'underline' }}>{part.slice(2, -2)}</span>;
+      }
+      return part;
+    });
+  };
 
   return (
-    <div class="container">
-     <div class="main"><br></br>
+    <div className="container">
+     <div className="main"><br></br>
       <header>
        <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px', marginLeft: '15px' }} className="home pi pi-home"></span>
        <h2>Welcome back, Jeroen</h2>
@@ -369,7 +389,7 @@ function App() {
 
             <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
               <Linkify componentDecorator={linkDecorator}>
-                {note.content ? note.content : ''} <span style={{ opacity: 0.66 }}><p></p>{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
+              {note.content ? enhanceNoteText(note.content) : ''} <span style={{ opacity: 0.66 }}><p></p>{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
               </Linkify>
               <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
               {note.tags.map(tag =>  <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}><span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span></a>)}
