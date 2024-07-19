@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
-import { InputTextarea } from 'primereact/inputtextarea';
+import ImageTextareaExtended from './ImageTextareaExtended';
 
-const TextAndImages = ({ initialText, onTextChange, registerModal, setValue }) => {
+const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, watch }) => {
   const [text, setText] = useState(initialText); // State to hold the text
   const [newText, setNewText] = useState(initialText);
   const apiKey = 'supersecret'; // Replace with your actual API key
@@ -11,6 +11,7 @@ const TextAndImages = ({ initialText, onTextChange, registerModal, setValue }) =
 
   useEffect(() => {
     // Update React Hook Form control with newText whenever it changes
+    console.log("Main component - text changed, value: ", newText)
     registerModal('content', newText );
   }, [newText]);
 
@@ -63,23 +64,20 @@ const TextAndImages = ({ initialText, onTextChange, registerModal, setValue }) =
 
   return (
     <div>
-      <InputTextarea
-        {...registerModal('content', { required: 'Required' })}
-        onChange={handleTextChange} // Update state on file upload
-        style={{ width: '99%', height: '20vh', borderRadius: '5px', marginTop: '5px' }}
+      <ImageTextareaExtended
         name="content"
-        className="p-inputtext-sm"
-        autoResize 
-        placeholder="Text"
-        rows={10}
-      />
+        register={registerModal}
+        setValue={setValue}
+        watch={watch}
+        onTextChange={onTextChange}
+      />  
       <div className="drop-zone" {...getRootProps()} onClick={handleClick}>
         <input {...getInputProps()} ref={fileInputRef} />
-          <label style={{ cursor: 'pointer' }}>Drag 'n' drop images here, or click to select</label>
+          <label><i className="pi pi-upload cloud-upload-icon"></i>&nbsp;upload images...</label>
       </div>      
     </div>
     
   );
 };
 
-export default TextAndImages;
+export default ImageTextarea;

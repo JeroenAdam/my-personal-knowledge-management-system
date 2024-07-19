@@ -67,15 +67,12 @@ body.dark-mode p {
 body.dark-mode span {
   color: #fff;
 }
-
 a {
   color: #c7d2fe;
 }
 a:hover {
   color: #d0e1fd;
 }
-
-
 h4 {
   margin-top: 4px;
 }
@@ -247,11 +244,23 @@ span.notes-accordion-button.notes-header-link:hover {
   cursor: pointer;
 }
 
+.p-dialog-header {
+  padding-top: 1.25rem;
+  padding-bottom: 0.33rem;
+}
+.p-dialog-content {
+  padding-bottom: 1.33rem;
+  overflow: visible; 
+}
 .dark-mode .p-dialog-header,
 .dark-mode .notes-header-edit,
 .dark-mode .p-dialog-content {
   color: #e0e0e0;
   background-color: #2B2B2B;
+}
+.dark-mode .p-dialog-content {
+  padding-bottom: 1.33rem;
+  overflow: visible; 
 }
 .dark-mode .accordion-button,
 .dark-mode .notes-accordion-button {
@@ -454,27 +463,6 @@ body.dark-mode .p-button:focus {
   text-decoration: underline;
 }
 
-.drop-zone {
-  font-size: 1rem; 
-  color: #AAA;
-  background-color: rgba(75, 85, 99, 0.1);;
-  border: 2px dashed #DDD;
-  border-radius: 6px;
-  padding: 5px;
-  text-align: center;
-  cursor: pointer;  
-  width: 99%;
-  height: 5vh;
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-.dark-mode .drop-zone {
-  font-size: 0.9rem;
-  padding-top: 7px;
-  background-color: #333;
-  border: 2px dashed #777;
-}
-
 .images {
   max-width: 100%;
   height: auto;
@@ -667,7 +655,10 @@ body.dark-mode .p-button:focus {
   font-size: 0.9em; 
   border: 1px solid #6366f1;
   border-radius: 12px;
-  padding: 0.5rem;
+  padding-left: 0.66rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   margin-top: 15px;
   display: flex;
   flex-wrap: wrap;
@@ -686,4 +677,115 @@ body.dark-mode .p-button:focus {
 }
 .dark-mode .related-tags-label {
   color: #666;
+}
+
+.drop-zone label{
+  font-size: 0.85rem; 
+  color: #777;
+  text-align: center;
+  cursor: pointer;    
+  width: 99%;
+  height: 0vh;
+  margin-left: 5px;
+}
+.drop-zone label::after {
+  content: "";
+  display: block;
+  height: 10px;
+  background-color: transparent;
+}
+.drop-zone label:hover {
+  color: #4b5563;
+}
+.dark-mode .drop-zone label:hover {
+  color: #D0D0D0;
+}
+.dark-mode .drop-zone label {
+  color: #AAA;
+  cursor: pointer;
+  position: relative;
+  top: -1px;
+}
+.drop-zone .cloud-upload-icon {
+  font-size: 0.75rem;
+  color: #AAA;
+  position: relative;
+  top: 1px;
+  padding-right: 2px; 
+}
+.drop-zone .cloud-upload-icon:hover {
+  color: #D0D0D0;
+}
+
+.custom-textarea {
+  position: relative;
+}
+
+.preview {
+  min-height: 75px;
+  border: 1px solid #d1d5db;
+  width: 99%;
+  border-radius: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 8px;
+}
+.preview:hover {
+  border-color: #6366f1;
+}
+.dark-mode .preview {
+  border: 1px solid #999;
+}
+.dark-mode .preview:hover {
+  border-color: #fff;
+}
+.preview:empty {
+  display: none;
+}
+
+.preview img {
+  display: inline-block;
+  vertical-align: middle;
+  max-height: 75px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+/* Tooltip */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: transparent;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  bottom: 20%; /* tooltip above the thumbs */
+  left: -10px;
+  margin-left: 15px;
+  opacity: 0;
+  width: auto;
+  height: auto;
+}
+
+/* Show the tooltip on hover */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Larger image in tooltip */
+.tooltiptext img {
+  position: relative;
+  z-index: 3;
+  max-height: none;
+  max-width: none;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  display: block; 
 }

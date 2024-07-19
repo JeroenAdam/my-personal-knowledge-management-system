@@ -8,7 +8,7 @@ import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
 import moment from 'moment';
 import Linkify from 'react-linkify';  
-import TextAndImages from './TextAndImages';
+import ImageTextarea from './ImageTextarea';
 import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
 import {
   ErrorBoundary,
@@ -36,7 +36,7 @@ function App() {
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal, setValue } = useForm();
+  const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal, setValue, watch } = useForm();
   const [open, setOpen] = useState('0');
   const date = moment().format('yyyy-MM-DD');
   const [tags, setTags] = useState([]);
@@ -230,7 +230,7 @@ function App() {
   const [text, setText] = useState('');
   const handleTextChange = (newText) => {
     setText(newText);
-    //console.log("parent component has received and set new text", newText)
+    console.log("The main app has received and set new text", newText)
   };
 
   const connector = new ElasticsearchAPIConnector({
@@ -327,7 +327,7 @@ function App() {
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
           />
-          <TextAndImages initialText={text} setValue={setValue} onTextChange={handleTextChange} registerModal={registerModal} />
+          <ImageTextarea initialText={text} setValue={setValue} onTextChange={handleTextChange} registerModal={registerModal} watch={watch}/> 
           <Chips
             style={{ width: '99%', borderRadius: '5px', marginTop: '5px' }}
             value={tags}
@@ -336,7 +336,7 @@ function App() {
             placeholder="Add tags"
             className="p-chips-input-token"
           />
-          <Button style={{ marginTop: '28px' }} size="small" type="submit" label="Save" />
+          <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />
         </form>
       </Dialog>
 
@@ -387,7 +387,7 @@ function App() {
       <br></br><br></br><center><p>Contact the <a href="https://www.adambahri.com/contact" target="_blank" rel="noopener noreferrer">
       <span className='footer-link'>author</span></a> of this app</p></center>
       </div>
-        <div className="sidebar"><br></br><label className="related-tags-label">&nbsp;&nbsp;Related tags:</label>
+        <div className="sidebar"><br></br><label className="related-tags-label">&nbsp;&nbsp;&nbsp;Related tags:</label>
           <div className="related-tags">
             {allTags.map(tag => (
               <a key={`sidebar-tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
