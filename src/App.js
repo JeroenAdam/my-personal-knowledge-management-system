@@ -47,6 +47,7 @@ function App() {
   const [needRerender, setNeedRerender] = useState(0);
 
   useEffect(() => {
+    setIsDarkMode(true);
     fetchNotes();
   }, []);
 

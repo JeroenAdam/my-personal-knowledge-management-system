@@ -184,14 +184,21 @@ body::-webkit-scrollbar {
 }
 
 .p-dialog {
-  width: 90vw;
+  width: 95vw;
+  height: 100vh;
   max-width: 880px;
   margin: auto;
-  overflow-y: auto;
 }
+.p-dialog .p-component{
+  overflow: visible;
+}
+.dark-mode .p-dialog .p-component{
+  overflow: visible;
+}
+
 @media (min-width: 900px) {
   .p-dialog {
-    width: 80vw;
+    width: 90vw;
   }
 }
 
@@ -313,8 +320,28 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 .p-dialog-content {
   padding-bottom: 1.33rem;
-  overflow: visible;
   border-bottom-right-radius: 0px;
+  
+  overflow-y: visible;
+}
+textarea {
+  resize: both;
+  width: 100%;
+  box-sizing: border-box;
+} 
+textarea::-webkit-resizer {
+  border: 1px solid #666;
+  background-color: #fff; 
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent #c7d2fe #c7d2fe transparent;
+}
+body.dark-mode textarea::-webkit-resizer {
+  border: 1px solid white;
+  background-color: #222;
+  border-width: 8px;
+  border-style: solid;
+  border-color: transparent #c7d2fe #c7d2fe transparent;
 }
 .dark-mode .p-dialog-header,
 .dark-mode .notes-header-edit,
@@ -324,7 +351,7 @@ span.notes-accordion-button.notes-header-link:hover {
 }
 .dark-mode .p-dialog-content {
   padding-bottom: 1.33rem;
-  overflow: visible; 
+  overflow-y: visible;
 }
 .dark-mode .accordion-button,
 .dark-mode .notes-accordion-button {
@@ -743,6 +770,9 @@ body.dark-mode .p-button:focus {
   color: #666;
 }
 
+div.drop-zone {
+  margin-bottom: 10px;
+}
 .drop-zone label{
   font-size: 0.85rem; 
   color: #777;
@@ -751,12 +781,6 @@ body.dark-mode .p-button:focus {
   width: 99%;
   height: 0vh;
   margin-left: 5px;
-}
-.drop-zone label::after {
-  content: "";
-  display: block;
-  height: 10px;
-  background-color: transparent;
 }
 .drop-zone label:hover {
   color: #4b5563;

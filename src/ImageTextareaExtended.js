@@ -52,11 +52,10 @@ const ImageTextareaExtended = ({ name, register, setValue, watch, onTextChange, 
       <InputTextarea {...props}
         value={text}
         onChange={handleChange}
-        style={{ width: '99%', height: '24vh', borderRadius: '5px', marginTop: '5px' }}
+        style={{ width: '99%', borderRadius: '5px', marginTop: '5px' }}
         className="p-inputtext-sm"
-        autoResize 
         placeholder="Text"
-        rows={13}
+        rows={17}
       />
       <div className="preview">
         {parseText(text)}
