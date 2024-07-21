@@ -190,11 +190,17 @@ function App() {
   };
 
   const linkDecorator = (href, text, key) => {
-    if (href.endsWith('.png')) {
+    if (/\.(png|jpg|gif|webp)$/i.test(href)) {
       return (
         <img className="images" src={href} alt={text} key={key} />  
       );
-    }  
+    } else if (/\.(mp4|webm)$/i.test(href)) {
+      return (
+        <video className="images" controls key={key}>
+          <source src={href} type={`video/${href.split('.').pop()}`} />
+        </video>
+      );
+    }
     if (href.includes(publicUrl)) {
       return (
         <a href={href} key={key}>

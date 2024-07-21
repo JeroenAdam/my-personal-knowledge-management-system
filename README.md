@@ -1,6 +1,6 @@
 # Introduction
 
-My PKM app enables the storage, structuring, and retrieval of information and knowledge. It supports text, images, internal links, code blocks, tags and search. Ideal for learning, research, work procedures, and personal note structuring. Built with Spring Boot 3.3 and React 18. Elasticsearch implementation is planned.
+My PKM app enables the storage, structuring, and retrieval of information and knowledge. It supports text, images, files, videos, internal links, tags and search. Ideal for learning, research, work procedures, and personal note structuring. Built with Spring Boot 3.3 and React 18. Elasticsearch implementation is planned.
 
 # Screenshots
  
@@ -22,7 +22,7 @@ You'll have a fully functional PKM app ready for use or for development.
 
 ## Prerequisites
 
-This guide assumes a clean Windows installation. We will be using the Chocolatey package manager. If you don't have Chocolatey installed, follow the instructions on the [Chocolatey installation page](https://chocolatey.org/install).
+This guide assumes a clean Windows installation. If you prefer a new virtual machine, go [here](https://github.com/JeroenAdam/New-VM-for-development) and come back later. We will be using the Chocolatey package manager. If you don't have Chocolatey installed, follow the instructions on the [Chocolatey installation page](https://chocolatey.org/install).
 
 ### Step 1: Install Required Software
 
@@ -40,7 +40,7 @@ Ensure Docker Desktop is running on your machine. We will use Docker to run a My
 
 ### Step 3: Configure Environment Variables
 
-Set the following environment variables. This configuration allows the backend and frontend to communicate correctly. Add these user environment variables:
+This configuration allows the backend and frontend to communicate correctly. Add these user environment variables:
 
 | Variable Name           | Value                      |
 |-------------------------|----------------------------|
@@ -104,7 +104,7 @@ cd ta3lim-backend
 
 ### Step 7: Set Up the Frontend Server
 
-Clone the frontend repository:
+Launch a separate PowerShell window and clone the frontend repository:
 
 ```powershell
 git clone https://github.com/JeroenAdam/my-personal-knowledge-management-system
@@ -128,10 +128,12 @@ npm start
 
 Go to `http://localhost:3000`. You can now start adding notes, uploading images, etc.
 
-### Optional: Automatic Backups
-
-For automatic backups, you can use `megatools`. This requires a free mega.nz account and works out-of-the-box with MySQL 9 locally installed (not Docker) on Windows. It is disabled by default but can be enabled by adding the necessary environment variables.
 
 ## Congratulations!
 
 Your PKM app is now set up and ready.
+![my-first-note](https://github.com/user-attachments/assets/b744911f-afc4-4df9-9ca8-d14066332fb3)
+
+### Optional: Automatic Backups
+
+For automatic backups, you can use `megatools`. This requires a free mega.nz account and works out-of-the-box with MySQL 9 locally installed (not Docker) on Windows. It is disabled by default but can be enabled by adding the necessary environment variables.

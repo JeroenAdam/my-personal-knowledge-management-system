@@ -22,7 +22,7 @@ const ImageTextareaExtended = ({ name, register, setValue, watch, onTextChange, 
   };
 
   const parseText = (text) => {
-    const urlRegex = /(https?:\/\/[^\s]+(\.png))/g;
+    const urlRegex = /(https?:\/\/[^\s]+(?:\.png|\.jpg|\.gif|\.webp))/g;
     const parts = text.split(urlRegex);
 
     return parts.map((part, index) => {
