@@ -32,7 +32,7 @@ import 'primeflex/primeflex.css';
 function App() {
   const backendUrl = 'http://localhost:8080/api/v1/notes';
   const publicUrl = 'http://localhost:3000';
-  const apiKey = 'supersecret';
+  const apiKey = '';
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -192,8 +192,7 @@ function App() {
   const linkDecorator = (href, text, key) => {
     if (href.endsWith('.png')) {
       return (
-        <img className="images" src={href} alt={text} key={key} headers={{ 'X-API-KEY': 'supersecret' }}
-         />  
+        <img className="images" src={href} alt={text} key={key} />  
       );
     }  
     if (href.includes(publicUrl)) {
@@ -235,9 +234,9 @@ function App() {
   };
 
   const connector = new ElasticsearchAPIConnector({
-    host: 'https://app.adambahri.com:1116',
-    index: 'resource',
-    apiKey: 'dm5Sc25Za0JuZDBCbHdnb19hWWQ6LUdjdXR3WE9TRWl1WFhDVUZjMl83dw==',
+    host: 'host',
+    index: 'index',
+    apiKey: '',
   });
 
   const config = {

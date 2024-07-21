@@ -111,7 +111,11 @@ git clone https://github.com/JeroenAdam/my-personal-knowledge-management-system
 cd my-personal-knowledge-management-system
 ```
 
-Edit `App.js` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
+<<<<<<< HEAD
+Edit `App.js` and `ImageTextarea` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
+=======
+Edit `App.js` and `ImageTextarea.js` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
+>>>>>>> 01a715a (Update README.md)
 
 Install the necessary dependencies and start the frontend server:
 

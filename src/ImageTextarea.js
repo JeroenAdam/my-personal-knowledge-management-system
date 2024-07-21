@@ -6,7 +6,7 @@ import ImageTextareaExtended from './ImageTextareaExtended';
 const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, watch }) => {
   const [text, setText] = useState(initialText); // State to hold the text
   const [newText, setNewText] = useState(initialText);
-  const apiKey = 'supersecret'; // Replace with your actual API key
+  const apiKey = ''; // Replace with your actual API key
   const fileInputRef = useRef(null); // UseRef to handle the dropzone file reference
 
   useEffect(() => {
