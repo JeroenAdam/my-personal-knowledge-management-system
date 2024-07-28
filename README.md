@@ -45,9 +45,10 @@ This configuration allows the backend and frontend to communicate correctly. Add
 | Variable Name           | Value                      |
 |-------------------------|----------------------------|
 | PKMS_API_KEY            | (choose any value)         |
+| PKMS_MYSQL_PORT         | 3306                       |
 | PKMS_MYSQL_DATABASE     | ta3lim                     |
-| PKMS_MYSQL_PASSWORD     | ta3lim                     |
 | PKMS_MYSQL_USERNAME     | ta3lim                     |
+| PKMS_MYSQL_PASSWORD     | ta3lim                     |
 | PKMS_PUBLIC_API         | http://localhost:8080      |
 | PKMS_PUBLIC_URL         | http://localhost:3000      |
 
@@ -111,11 +112,7 @@ git clone https://github.com/JeroenAdam/my-personal-knowledge-management-system
 cd my-personal-knowledge-management-system
 ```
 
-<<<<<<< HEAD
-Edit `App.js` and `ImageTextarea` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
-=======
 Edit `App.js` and `ImageTextarea.js` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
->>>>>>> 01a715a (Update README.md)
 
 Install the necessary dependencies and start the frontend server:
 
@@ -132,8 +129,9 @@ Go to `http://localhost:3000`. You can now start adding notes, uploading images,
 ## Congratulations!
 
 Your PKM app is now set up and ready.
-![my-first-note](https://github.com/user-attachments/assets/b744911f-afc4-4df9-9ca8-d14066332fb3)
+![my-first-note](https://github.com/user-attachments/assets/e2d6630c-97ba-4130-96c2-045098d2ac3d)
+
 
 ### Optional: Automatic Backups
 
-For automatic backups, you can use `megatools`. This requires a free mega.nz account and works out-of-the-box with MySQL 9 locally installed (not Docker) on Windows. It is disabled by default but can be enabled by adding the necessary environment variables.
+For automatic backups, you can use `megatools`. This requires a free [mega.nz](https://mega.io/?aff=LC8QgvuXn7k) account and works out-of-the-box with MySQL 9 locally installed (not Docker) on Windows. It is disabled by default but can be enabled by adding the necessary environment variables.

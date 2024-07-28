@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { UncontrolledAccordion, AccordionBody, AccordionHeader, AccordionItem } from 'reactstrap';
+import { Accordion, AccordionBody, AccordionHeader, AccordionItem } from 'reactstrap';
 import { useForm } from 'react-hook-form';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
+import { ToggleButton } from 'primereact/togglebutton';
 import moment from 'moment';
 import Linkify from 'react-linkify';  
 import ImageTextarea from './ImageTextarea';
+import CustomNavbar from './CustomNavbar';
 import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
 import {
   ErrorBoundary,
@@ -37,14 +39,15 @@ function App() {
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal, setValue, watch } = useForm();
-  const [open, setOpen] = useState('0');
-  const date = moment().format('yyyy-MM-DD');
+  const date = moment().format('yyyy-MM-DDTHH:mm:ss');
   const [tags, setTags] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSingleNote, setIsSingleNote] = useState(false);
   const [needRerender, setNeedRerender] = useState(0);
+  const [displayDraft, setDisplayDraft] = useState(false);
+  const [displayDeleted, setDisplayDeleted] = useState(false);
 
   useEffect(() => {
     setIsDarkMode(true);
@@ -57,7 +60,11 @@ function App() {
   
   const fetchNotes = async () => {
     try {
-      const res = await axios.get(backendUrl, { headers: { 'X-API-KEY': apiKey } });
+      let url = backendUrl;
+      url = displayDraft ? `${backendUrl}?status=DRAFT` : url;
+      url = displayDeleted && selectedTag == "Home" ? `${backendUrl}?status=DELETED` : url;
+      url = !displayDeleted && selectedTag == "Home" ? backendUrl : url;
+      const res = await axios.get(url, { headers: { 'X-API-KEY': apiKey } });
       setNotes(res.data);
       setFilteredNotes(res.data);
     } catch (error) {
@@ -79,6 +86,10 @@ function App() {
   };
 
   useEffect(() => {
+    fetchNotes();
+  }, [displayDraft, displayDeleted]); 
+
+  useEffect(() => {
     window.addEventListener('hashchange', loadNoteFromURL);
     loadNoteFromURL(); // Load note on initial render
 
@@ -98,12 +109,13 @@ function App() {
   };
 
   const submit = async (data) => {
+    if (data.title.includes('[DRAFT]')) { data.status = 'DRAFT' }
+    if (!data.title.includes('[DELETED]') && data.status == 'DELETED' && !data.title.includes('[DRAFT]')) { data.status = 'ACTIVE' }
     const noteData = {
       ...data,
       updateDate: date,
-      tags: tags.map(tag => ({ label: tag }))
+      tags: tags.map(tag => ({ label: tag })),
     };
-  
     try {
       let res;
       if (isEditMode) {
@@ -124,6 +136,7 @@ function App() {
     setTags([]);
     setIsVisible(false);
     setIsEditMode(false);
+    if (displayDeleted) {fetchNotes();}
   };
   
   const handleEditNote = async id => {
@@ -137,15 +150,35 @@ function App() {
   };  
 
   const handleDeleteNote = async (id) => {
+    const noteToDelete = notes.find(n => n.id === id);
+    if (!noteToDelete) { throw new Error('Note not found'); }
+    // hard delete
+    if (noteToDelete.status == 'DELETED') {
+      try {
+        await axios.delete(`${backendUrl}/${id}`, { headers: { 'X-API-KEY': apiKey } });
+        const updatedNotes = notes.filter(note => note.id !== id);
+        setNotes(updatedNotes);
+        filterNotesByTag(selectedTag, updatedNotes);
+      } catch (error) {
+        console.error('Error deleting note:', error);
+      }
+      if (displayDeleted) {fetchNotes();}
+      return;
+    }
+    // soft delete
+    const tags = noteToDelete.tags.map(tag => tag.label);
+    console.log(tags);
+    const updatedNote = { ...noteToDelete, title: '[DELETED] '+noteToDelete.title, status: 'DELETED', updateDate: date, tags: tags.map(tag => ({ label: tag })) };
     try {
-      await axios.delete(`${backendUrl}/${id}`, { headers: { 'X-API-KEY': apiKey } });
+      const res = await axios.put(`${backendUrl}/${id}`, updatedNote, { headers: { 'X-API-KEY': apiKey } });
       const updatedNotes = notes.filter(note => note.id !== id);
       setNotes(updatedNotes);
       filterNotesByTag(selectedTag, updatedNotes);
     } catch (error) {
       console.error('Error deleting note:', error);
     }
-  }
+    if (displayDeleted) {fetchNotes();}
+  };
 
   const [showScroll, setShowScroll] = useState(false);
 
@@ -170,6 +203,7 @@ function App() {
 
   const handleTagClick = (tag) => {
     setSelectedTag(tag);
+    setDisplayDeleted(false);
     setFilteredNotes(notes.filter(note => note.tags.some(t => t.label === tag)));
     // console.log("handletagclick function: filtering by", tag, filteredNotes)
     scrollToTop();
@@ -190,26 +224,27 @@ function App() {
   };
 
   const linkDecorator = (href, text, key) => {
-    if (/\.(png|jpg|gif|webp)$/i.test(href)) {
+    const encodedHref = encodeURI(href);
+    if (/\.(png|jpg|jpeg|gif|webp)$/i.test(href)) {
       return (
-        <img className="images" src={href} alt={text} key={key} />  
+        <img className="images" src={encodedHref} alt={text} key={key} />  
       );
-    } else if (/\.(mp4|webm)$/i.test(href)) {
+    } else if (/\.(mp4|webm)$/i.test(encodedHref)) {
       return (
         <video className="images" controls key={key}>
-          <source src={href} type={`video/${href.split('.').pop()}`} />
+          <source src={encodedHref} type={`video/${href.split('.').pop()}`} />
         </video>
       );
     }
     if (href.includes(publicUrl)) {
       return (
-        <a href={href} key={key}>
+        <a href={encodedHref} key={key}>
           {text}
         </a>
       );
     }
     return (
-      <a href={href} key={key} target="_blank" rel="noopener noreferrer">
+      <a href={encodedHref} key={key} target="_blank" rel="noopener noreferrer">
         {text}
       </a>
     );
@@ -236,7 +271,7 @@ function App() {
   const [text, setText] = useState('');
   const handleTextChange = (newText) => {
     setText(newText);
-    console.log("The main app has received and set new text", newText)
+    // console.log("The main app has received and set new text", newText)
   };
 
   const connector = new ElasticsearchAPIConnector({
@@ -291,27 +326,57 @@ function App() {
     });
   };
 
-  return (
+  const [openIds, setOpenIds] = useState({});
+
+  const toggle = (id) => {
+    console.log(id);
+    setOpenIds((prevState) => ({
+      ...prevState,
+      [id]: !prevState[id]
+    }));
+  };
+
+  const [showMoreIds, setShowMoreIds] = useState({});
+
+  const toggleShowMore = (id) => {
+    setShowMoreIds((prevState) => ({
+      ...prevState,
+      [id]: !prevState[id]
+    }));
+  };
+
+    // Set all notes to open by default
+    useEffect(() => {
+      const initialOpenIds = filteredNotes.reduce((acc, note, i) => {
+        acc[`entity-${i}`] = true;
+        return acc;
+      }, {});
+      setOpenIds(initialOpenIds);
+    }, [filteredNotes]);
+
+  return (  
     <div className="container">
      <div className="main"><br></br>
       <header>
-       <span onClick={() => handleTagClick("Home")} style={{ transform: 'scale(1.25)', marginTop: '2px', marginLeft: '15px' }} className="home pi pi-home"></span>
+       <button onClick={() => { setDisplayDeleted(false); handleTagClick("Home") }} disabled={selectedTag=="Home"}
+        className="home pi pi-home"></button>
        <h2>Welcome back, Jeroen</h2>
        <label style={{ marginTop: '4px' }}className="theme-switch">
           <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
           <span className="slider round"></span>
        </label></header><br></br>
-       { // <SearchProvider config={config}>
-          // <SearchBox
-          //    className="searchlabel show-cancel-button"
-          //    inputProps={{ key: 'password', placeholder: 'Search...', id: 'search', type: 'search' }}
-          //    autocompleteMinimumCharacters={3}
-          //    /* autocompleteResults={{ linkTarget: "_blank", sectionTitle: "Results", titleField: "title", urlField: "url", shouldTrackClickThrough: true }} */
-          //    autocompleteSuggestions={false}
-          //    searchAsYouType
-          //  />
-          // </SearchProvider>
-       }
+       { /* selectedTag !== "Home" && (
+         <SearchProvider config={config}>
+         <SearchBox
+              className="searchlabel show-cancel-button"
+              inputProps={{ key: 'password', placeholder: 'Search...', id: 'search', type: 'search' }}
+              autocompleteMinimumCharacters={3}
+             autocompleteSuggestions={false}
+              searchAsYouType
+            />
+           </SearchProvider>
+         )
+         */ }
       <Button
         label="Add Note"
         icon="pi pi-plus"
@@ -320,9 +385,12 @@ function App() {
           setText("");
           setIsVisible(true)
         }}
-        style={{ width: '96%', position: 'relative', left: '14px' }}
-      /><br></br><br></br>
-      {selectedTag && (
+        style={{ width: '90%', position: 'relative', left: '14px' }}
+      />
+      <ToggleButton className="toggle" disabled={selectedTag=="Home"} checked={displayDraft} onChange={e => setDisplayDraft(e.value)}
+        onLabel="" offLabel="" onIcon="pi pi-file" offIcon="pi pi-file-check"></ToggleButton >
+      <br></br><br></br>
+      {selectedTag && selectedTag !== "Home" && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
           <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
@@ -365,45 +433,147 @@ function App() {
           <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />
         </form>
       </Dialog>
+      <CustomNavbar selectedTag={selectedTag} scrollToTop={scrollToTop} clearFilter={clearFilter} setDisplayDeleted={setDisplayDeleted} displayDeleted={displayDeleted}></CustomNavbar>
+      <Accordion toggle={toggle} toggleShowMore={toggleShowMore} flush>
+      {filteredNotes.map((note, i) => {
+        const id = `entity-${i}`;
+        const isOpen = !!openIds[id];
+        const showMore = !!showMoreIds[id];
 
-      <UncontrolledAccordion flush open={open} >
-        {filteredNotes.map((note, i) => (
-          <AccordionItem key={`entity-${i}`}>
-            <AccordionHeader className="notes-accordion-button" targetId={`entity-${i}`}>
+        return (
+          <AccordionItem key={id}>
+            <AccordionHeader
+              style={note.status === 'DELETED' ? {
+                borderTop: '1px solid red',
+                borderLeft: '1px solid red',
+                borderRight: '1px solid red',
+                borderTopLeftRadius: '6px',
+                borderTopRightRadius: '6px'
+              } : {}}
+              className="notes-accordion-button"
+              onClick={() => toggle(id)}
+            >
               <div className="notes-accordion-button">
-                <span className="notes-header-edit"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleEditNote(note.id);
-                    }}
-                ><i className="pi pi-pencil"></i></span>
-                <span style={{ marginLeft: '0.5rem' }}>{note.title}</span>
-                <span className="notes-header-delete"
-                    onClick={() => {
-                      const confirm = window.confirm(`Are you sure you want to delete "${note.title}"?`);
-                      if (!confirm) return;
-                      handleDeleteNote(note.id);
-                    }}
-                ></span>
-                <span style={{ marginLeft: '0.75rem', cursor: 'pointer', PaddingTop: '20px' }}className="notes-accordion-button notes-header-link"
-                    onClick={() => copyToClipboard(publicUrl+"/#note-"+note.id)}
-                ><i className="pi pi-link"></i>
+                <span
+                  className="notes-header-edit"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleEditNote(note.id);
+                  }}
+                >
+                  <i className="pi pi-pencil"></i>
                 </span>
+                <span style={{ marginLeft: '0.5rem' }}>{note.title}</span>
+                <span
+                  style={{ marginLeft: '0.75rem', cursor: 'pointer' }}
+                  className="notes-header-link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    copyToClipboard(publicUrl + "/#note-" + note.id);
+                  }}
+                >
+                  <i className="pi pi-link"></i>
+                </span>
+                <span
+                  className="notes-header-delete"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isDeleted = note.status === 'DELETED';
+                    const confirmMessage = isDeleted
+                      ? `Are you sure you want to permanently delete "${note.title}"?\nThis action cannot be undone.`
+                      : `Are you sure you want to delete "${note.title}"?\nIt will be moved to the recycle bin.`;
+                    const confirm = window.confirm(confirmMessage);
+                    if (!confirm) return;
+                    handleDeleteNote(note.id);
+                  }}
+                ></span>
+                {note.linked && note.linked.map(linked => (
+                  linked.referrer && (
+                    <a
+                      style={{ marginLeft: 'auto', opacity: '0.5', cursor: 'pointer', textDecoration: 'underline' }}
+                      key={`linked-${linked.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.replace(publicUrl + "/#note-" + linked.referrer.id);
+                      }}
+                    >
+                      <i style={{ color: '#FFF', marginRight: '4px', height: '22px' }} className="pi pi-undo"></i>
+                      <span key={linked.id}>{linked.referrer.title}</span>
+                    </a>
+                  )
+                ))}
               </div>
             </AccordionHeader>
 
-            <AccordionBody className="notes-menu-accordion-body note-content" accordionId={`entity-${i}`}>
-              <Linkify componentDecorator={linkDecorator}>
-              {note.content ? enhanceNoteText(note.content) : ''} <span style={{ opacity: 0.66 }}><p></p>{ note.updateDate ? "Last updated: "+note.updateDate : '' }</span>
-              </Linkify>
-              <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
-              {note.tags.map(tag =>  <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}><span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span></a>)}
-              </div>
-            </AccordionBody>
+            {isOpen && (
+              <AccordionBody
+                style={note.status === 'DELETED' ? {
+                  borderBottom: '1px solid red',
+                  borderLeft: '1px solid red',
+                  borderRight: '1px solid red',
+                  borderBottomLeftRadius: '6px',
+                  borderBottomRightRadius: '6px',
+                  maxHeight: showMore ? 'none' : '300px',
+                  overflow: 'hidden',
+                  position: 'relative'
+                } : {
+                  maxHeight: showMore ? 'none' : '300px',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+                className="notes-menu-accordion-body note-content"
+              >
+                <Linkify componentDecorator={linkDecorator}>
+                  {note.content ? enhanceNoteText(note.content) : ''}
+                  <span style={{ opacity: 0.4 }}>
+                    <p></p>
+                    {note.updateDate && note.title !== "Home" ? "Last updated: " + note.updateDate.split('.')[0].replace('T', ' ').slice(0, 16) : ''}
+                  </span>
+                </Linkify>
+                <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
+                  {selectedTag === "Home" && note.tags.map(tag => (
+                    <a key={`tag-${tag.id}`}>
+                      <span className="badge disabled bg-light rounded-pill" key={tag.id}>{tag.label}</span>
+                    </a>
+                  ))}
+                  {selectedTag !== "Home" && note.tags.map(tag => (
+                    <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
+                      <span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span>
+                    </a>
+                  ))}
+                </div>
+                {!showMore && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: -13,
+                      left: 0,
+                      right: 0,
+                      textAlign: 'center',
+                      background: 'linear-gradient(transparent, black)',
+                      padding: '10px 0'
+                    }}
+                  >
+                    <button style={{ border: 0, cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
+                    onClick={() => toggleShowMore(id)}><i className="pi pi-chevron-down"></i></button>
+                  </div>
+                )}
+                {showMore && (
+                  <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                    <button style={{ border: 0, cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
+                    onClick={() => toggleShowMore(id)}><i className="pi pi-chevron-up"></i></button>
+                  </div>
+                )}
+              </AccordionBody>
+            )}
           </AccordionItem>
-        ))}
-      </UncontrolledAccordion>
+        );
+      })}
+    </Accordion>
       <br></br>
       {showScroll && (
         <center><button onClick={scrollToTop} className="scroll-to-top">
@@ -413,6 +583,7 @@ function App() {
       <br></br><br></br><center><p>Contact the <a href="https://www.adambahri.com/contact" target="_blank" rel="noopener noreferrer">
       <span className='footer-link'>author</span></a> of this app</p></center>
       </div>
+      {selectedTag != "Home" && (
         <div className="sidebar"><br></br><label className="related-tags-label">&nbsp;&nbsp;&nbsp;Related tags:</label>
           <div className="related-tags">
             {allTags.map(tag => (
@@ -422,6 +593,7 @@ function App() {
             ))}
           </div>
         </div>
+      )}
       </div>
   );
 }

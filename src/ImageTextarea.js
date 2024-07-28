@@ -11,7 +11,7 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
 
   useEffect(() => {
     // Update React Hook Form control with newText whenever it changes
-    console.log("Main component - text changed, value: ", newText)
+    // console.log("Main component - text changed, value: ", newText)
     registerModal('content', newText );
   }, [newText]);
 
@@ -73,7 +73,7 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
       />  
       <div className="drop-zone" {...getRootProps()} onClick={handleClick}>
         <input {...getInputProps()} ref={fileInputRef} />
-          <label><i className="pi pi-upload cloud-upload-icon"></i>&nbsp;upload images...</label>
+          <label><i className="pi pi-upload cloud-upload-icon"></i>&nbsp;upload files...</label>
       </div>      
     </div>
     

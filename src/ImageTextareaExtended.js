@@ -15,14 +15,14 @@ const ImageTextareaExtended = ({ name, register, setValue, watch, onTextChange, 
 
   const handleChange = (e) => {
     const newValue = e.target.value;
-    console.log("Extended component - text changed, value: ", newValue)
+    // console.log("Extended component - text changed, value: ", newValue)
     setText(newValue);
     onTextChange(newValue);
     setValue(name, newValue);
   };
 
   const parseText = (text) => {
-    const urlRegex = /(https?:\/\/[^\s]+(?:\.png|\.jpg|\.gif|\.webp))/g;
+    const urlRegex = /(https?:\/\/[^\s]+(?:\.png|\.jpg|\.jpeg|\.gif|\.webp))/g;
     const parts = text.split(urlRegex);
 
     return parts.map((part, index) => {
