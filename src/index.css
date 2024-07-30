@@ -19,6 +19,7 @@ body {
 .main {
   padding: 0;
   margin-bottom: 1rem;
+  overflow: hidden; 
 }
 
 .sidebar {
@@ -54,6 +55,10 @@ body {
   }
 }
 
+
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 0px;
+}
 
 body.dark-mode,
 body.dark-mode .main,
@@ -945,9 +950,9 @@ div.drop-zone {
 }
 
 .code-block {
-  max-width: 100%;
-  white-space: pre-wrap;
   overflow-x: auto;
+  font-size: 0.85rem;
+
   background: rgba(97, 86, 227, 0.9);
   padding: 0.25rem;
   margin-right: 2px;
@@ -1007,4 +1012,78 @@ span.p-button-label.p-c {
   span.p-button-label.p-c {
     font-size: 1.125rem;
   }
+}
+
+.showmore {
+  height: 44px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  background: linear-gradient(transparent, rgba(97, 86, 227, 1));
+  padding: 10px 0;
+}
+.showmore::before {
+  content: '';
+  width: 44px;
+  height: 44px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0;
+}
+.showmore:hover::before {
+  opacity: 1;
+}
+body.dark-mode .showmore {
+  background: linear-gradient(transparent, #121212);
+  opacity: 0.95;
+}
+.dark-mode .showmore:hover::before {
+  opacity: 0.1;
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.showless {
+  position: relative;
+  bottom: -10px;
+  text-align: center;
+}
+.showless::before  {
+  content: '';
+  width: 44px;
+  height: 44px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -23px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0;
+}
+.showless:hover::before {
+  opacity: 1;
+}
+body.dark-mode .showless {
+  opacity: 0.95;
+}
+.dark-mode .showless:hover::before {
+  opacity: 0.1;
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.toggle-all-notes {
+  text-decoration: underline;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background-color: transparent;
+  color: #6156e3;
+}
+.dark-mode .toggle-all-notes {
+  color: #f1f1f1;
 }

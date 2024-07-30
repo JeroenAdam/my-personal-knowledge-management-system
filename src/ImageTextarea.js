@@ -6,6 +6,7 @@ import ImageTextareaExtended from './ImageTextareaExtended';
 const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, watch }) => {
   const [text, setText] = useState(initialText); // State to hold the text
   const [newText, setNewText] = useState(initialText);
+  const [cursorPosition, setCursorPosition] = useState(0); // State to hold the cursor position
   const apiKey = ''; // Replace with your actual API key
   const fileInputRef = useRef(null); // UseRef to handle the dropzone file reference
 
@@ -32,7 +33,7 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
       }).then(response => {
         if (response.status === 200) {
           const uploadedFilename = response.data.trim();
-          const newContent = `${initialText} ${uploadedFilename}`;
+          const newContent = insertAtCursor(initialText, uploadedFilename, cursorPosition);
           setNewText(newContent); // Update local state with new text
           const e = {target: {value: newContent}};
           handleTextChange(e);
@@ -45,6 +46,10 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
     } catch (error) {
       console.error('Error preparing upload:', error);
     }
+  };
+
+  const insertAtCursor = (text, insertText, cursorPosition) => {
+    return text.slice(0, cursorPosition) + insertText + text.slice(cursorPosition);
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -62,6 +67,10 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
     setValue('content', newText); 
   };
 
+  const handleCursorPositionChange = (e) => {
+    setCursorPosition(e.target.selectionStart);
+  };
+
   return (
     <div>
       <ImageTextareaExtended
@@ -70,13 +79,14 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
         setValue={setValue}
         watch={watch}
         onTextChange={onTextChange}
-      />  
+        onClick={handleCursorPositionChange}
+        onKeyUp={handleCursorPositionChange}
+      />
       <div className="drop-zone" {...getRootProps()} onClick={handleClick}>
         <input {...getInputProps()} ref={fileInputRef} />
-          <label><i className="pi pi-upload cloud-upload-icon"></i>&nbsp;upload files...</label>
-      </div>      
+        <label><i className="pi pi-upload cloud-upload-icon"></i>&nbsp;upload files...</label>
+      </div>
     </div>
-    
   );
 };
 

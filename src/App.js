@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Accordion, AccordionBody, AccordionHeader, AccordionItem } from 'reactstrap';
 import { useForm } from 'react-hook-form';
@@ -142,6 +142,7 @@ function App() {
   const handleEditNote = async id => {
     setIsVisible(true);
     setIsEditMode(true);
+    let notes = filteredNotes;
     const note = notes.find(n => n.id === id);
     const noteTags = note.tags.map(tag => tag.label);
     setTags(noteTags);
@@ -306,37 +307,68 @@ function App() {
   }, []);
   
   const enhanceNoteText = (text) => {
-    const regex = /(```[\s\S]*?```|\*\*.*?\*\*|__.*?__)/g;
-    const parts = text.split(regex);
-  
+    const applyInlineFormatting = (text) => { // Helper function to apply inline formatting e.g. for header lines and list item lines
+      const inlineRegex = /(\*\*[^*]+\*\*|__[^_]+__)/g;
+      const parts = text.split(inlineRegex);
+      return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
+        } else if (part.startsWith('__') && part.endsWith('__')) {
+          return <span key={index} style={{ textDecoration: 'underline' }}>{part.slice(2, -2)}</span>;
+        }
+        return part;
+      });
+    };
+    const regex = /(```[\s\S]*?```|---|#{1,6}\s[^\n]+|^\s*[-*]\s[^\n]+(?:\n|$))/gm; // capture different Markdown-like formats
+    const parts = text.split(regex).filter(part => part && part.trim() !== '');
     return parts.map((part, index) => {
+      if (typeof part !== 'string') return null;
+      if (part.trim() === '---') {
+        return <hr key={index} />;
+      }
       if (part.startsWith('```') && part.endsWith('```')) {
-        const codeContent = part.slice(3, -3).replace(/^\n+|\n+$/g, '').trim();
+        const codeContent = part.slice(3, -3).trim();
         return (
           <pre key={index} className="code-block">
             <code>{codeContent}</code>
           </pre>
         );
-      } else if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={index}>{part.slice(2, -2)}</strong>;
-      } else if (part.startsWith('__') && part.endsWith('__')) {
-        return <span key={index} style={{ textDecoration: 'underline' }}>{part.slice(2, -2)}</span>;
       }
-      return part;
+      else if (part.match(/^#{1,6}\s/)) {
+        const headerMatch = part.match(/^(#{1,6})\s+(.*)$/);
+        if (headerMatch) {
+          const headerLevel = headerMatch[1].length;
+          return React.createElement(`h${headerLevel}`, { key: index }, applyInlineFormatting(headerMatch[2].trim()));
+        }
+      }
+      else if (part.match(/^\s*[-*]\s/)) { // list items only if at the beginning of a line
+        const trimmedPart = part.trimStart();
+        return <li key={index}>{applyInlineFormatting(trimmedPart.slice(trimmedPart.indexOf(' ') + 1).trim())}</li>;
+      }
+      return <span key={index}>{applyInlineFormatting(part)}</span>;
     });
   };
 
   const [openIds, setOpenIds] = useState({});
+  const [showMoreIds, setShowMoreIds] = useState({});
+  const allNotesOpenRef = useRef(true); 
+  const [allOpen, setAllOpen] = useState(true);
+
+  // Set all notes to open by default
+  useEffect(() => {
+    const initialOpenIds = filteredNotes.reduce((acc, note, i) => {
+      acc[`entity-${i}`] = allNotesOpenRef.current;
+      return acc;
+    }, {});
+    setOpenIds(initialOpenIds);
+  }, [filteredNotes]);
 
   const toggle = (id) => {
-    console.log(id);
     setOpenIds((prevState) => ({
       ...prevState,
       [id]: !prevState[id]
     }));
   };
-
-  const [showMoreIds, setShowMoreIds] = useState({});
 
   const toggleShowMore = (id) => {
     setShowMoreIds((prevState) => ({
@@ -345,14 +377,16 @@ function App() {
     }));
   };
 
-    // Set all notes to open by default
-    useEffect(() => {
-      const initialOpenIds = filteredNotes.reduce((acc, note, i) => {
-        acc[`entity-${i}`] = true;
-        return acc;
-      }, {});
-      setOpenIds(initialOpenIds);
-    }, [filteredNotes]);
+  const toggleAllNotes = () => {
+    allNotesOpenRef.current = !allNotesOpenRef.current;
+    setOpenIds(prevState => {
+      const newOpenIds = { ...prevState };
+      filteredNotes.forEach((note, i) => {
+        newOpenIds[`entity-${i}`] = allNotesOpenRef.current;
+      });
+      return newOpenIds;
+    });
+  };
 
   return (  
     <div className="container">
@@ -388,7 +422,7 @@ function App() {
         style={{ width: '90%', position: 'relative', left: '14px' }}
       />
       <ToggleButton className="toggle" disabled={selectedTag=="Home"} checked={displayDraft} onChange={e => setDisplayDraft(e.value)}
-        onLabel="" offLabel="" onIcon="pi pi-file" offIcon="pi pi-file-check"></ToggleButton >
+        onLabel="" offLabel="" onIcon="pi pi-file" offIcon="pi pi-file-check"></ToggleButton >    
       <br></br><br></br>
       {selectedTag && selectedTag !== "Home" && (
         <div>
@@ -434,7 +468,7 @@ function App() {
         </form>
       </Dialog>
       <CustomNavbar selectedTag={selectedTag} scrollToTop={scrollToTop} clearFilter={clearFilter} setDisplayDeleted={setDisplayDeleted} displayDeleted={displayDeleted}></CustomNavbar>
-      <Accordion toggle={toggle} toggleShowMore={toggleShowMore} flush>
+      <Accordion open={allNotesOpenRef.current} toggle={toggle} toggleShowMore={toggleShowMore} flush>
       {filteredNotes.map((note, i) => {
         const id = `entity-${i}`;
         const isOpen = !!openIds[id];
@@ -547,24 +581,16 @@ function App() {
                   ))}
                 </div>
                 {!showMore && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: -13,
-                      left: 0,
-                      right: 0,
-                      textAlign: 'center',
-                      background: 'linear-gradient(transparent, black)',
-                      padding: '10px 0'
-                    }}
-                  >
-                    <button style={{ border: 0, cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
+                  <div className="showmore" style={{ bottom: -13 }}>
+                    <button style={{ border: 0, paddingTop: '11px', paddingLeft: '20px', paddingRight: '20px', position: 'relative',
+                    top: '-10px', verticalAlign: 'top', cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
                     onClick={() => toggleShowMore(id)}><i className="pi pi-chevron-down"></i></button>
                   </div>
                 )}
                 {showMore && (
-                  <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                    <button style={{ border: 0, cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
+                  <div className="showless">
+                    <button style={{ border: 0, paddingTop: '10px', paddingBottom: '21px', paddingLeft: '20px', paddingRight: '20px',
+                    position: 'relative', bottom: '-9px', cursor: 'pointer', backgroundColor: 'transparent', color: 'white' }}
                     onClick={() => toggleShowMore(id)}><i className="pi pi-chevron-up"></i></button>
                   </div>
                 )}
@@ -584,7 +610,11 @@ function App() {
       <span className='footer-link'>author</span></a> of this app</p></center>
       </div>
       {selectedTag != "Home" && (
-        <div className="sidebar"><br></br><label className="related-tags-label">&nbsp;&nbsp;&nbsp;Related tags:</label>
+        <div className="sidebar">
+          <span className="toggle-all-notes" onClick={toggleAllNotes}>
+            {allNotesOpenRef.current ? 'Fold All Notes' : 'Unfold All Notes'}
+          </span><br></br>
+          <label className="related-tags-label">&nbsp;&nbsp;&nbsp;Related tags:</label>
           <div className="related-tags">
             {allTags.map(tag => (
               <a key={`sidebar-tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
