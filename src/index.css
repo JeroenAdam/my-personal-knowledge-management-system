@@ -56,8 +56,12 @@ body {
 }
 
 
+
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0px;
+}
+h2 {
+  margin-top: 6px;
 }
 
 body.dark-mode,
@@ -66,6 +70,7 @@ body.dark-mode .sidebar {
   background-color: #121212;
 }
 body.dark-mode h2,
+body.dark-mode h3,
 body.dark-mode h4,
 body.dark-mode p {
   color: #e0e0e0;
@@ -83,6 +88,7 @@ h4 {
   margin-top: 4px;
 }
 pre {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   margin-top: 0.5rem;
   margin-bottom: 0;
 }
@@ -226,6 +232,7 @@ body::-webkit-scrollbar {
 
 .note-content {
   white-space: pre-line;
+  margin-bottom: 12px;
 }
 
 .accordion-item {
@@ -351,13 +358,75 @@ span.notes-header-link:hover {
 .p-dialog-header {
   padding-top: 1.25rem;
   padding-bottom: 0.33rem;
-  border-top-right-radius: 0px;
+  border-top-right-radius: 5px;
+  position: relative; 
 }
+
+.custom-header-items {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.custom-header-menu.status {
+  font-weight: 400;
+  margin-left: 8px;
+  margin-top: 6px;
+  color: #666;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.custom-header-menu.status:hover {
+  color: #999;
+}
+
+/* CustomContextMenu.css */
+
+.no-scroll-if-dialog {
+  overflow: hidden;
+}
+
+.p-contextmenu {
+  position: absolute;
+  background-color: #333;
+}
+
+.p-contextmenu ul {
+  background-color: #333;
+}
+
+.p-contextmenu .p-menuitem-link {
+  background-color: #333 !important;
+  color: #000; /* Set the default text color */
+}
+
+.p-contextmenu .p-menuitem-link:hover {
+  background-color: #292929 !important; /* Set your desired hover background color */
+  color: #777; /* Set the hover text color */
+}
+
+.p-contextmenu .p-menuitem-link:focus {
+  background-color: #333 !important; /* Set your desired focus background color */
+  color: #000; /* Set the focus text color */
+}
+
+.p-menuitem-link:hover {
+  color: #ddd;
+  background-color: #333;
+}
+
 .p-dialog-content {
   padding-bottom: 1.33rem;
   border-bottom-right-radius: 0px;
-  
+  border-radius: 5px;
   overflow-y: visible;
+}
+.p-dialog-content.diff {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.p-tooltip-text {
+  background-color: transparent;
 }
 textarea {
   resize: both;
@@ -398,6 +467,7 @@ body.dark-mode textarea::-webkit-resizer {
 .dark-mode .badge.bg-light {
   background-color: #222;
   color: #e0e0e0;
+  opacity: 0.95;
 }
 .dark-mode .notes-header-edit:hover,
 .dark-mode .notes-menu-accordion-body:hover {
@@ -433,13 +503,14 @@ body.dark-mode textarea::-webkit-resizer {
 .p-chips-input-token input
 {
   font-size: 0.86rem;
+  padding-bottom: 2px;
 }
 .p-chips-token
 {
   font-size: 0.9rem;
-  margin-top: 2px;
+  margin-top: 3px;
   padding: 0.25rem 0.75rem;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .dark-mode .p-inputtext-sm,
 .dark-mode .p-chips .p-chips-multiple-container,
@@ -575,13 +646,13 @@ input:checked + .slider:before {
 }
 
 .p-button.p-component {
-  padding: 0.66rem 1.25rem;
+  padding: 0.64em 1.25rem;
 }
 
 .p-button.p-component.p-button-outlined {
   background-color: rgba(255, 255, 255, 0.3);
   border: 1px solid #6366f1;
-  padding: 0.66rem 1.25rem;
+  
   font-size: 1rem;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   border-radius: 6px;
@@ -952,7 +1023,6 @@ div.drop-zone {
 .code-block {
   overflow-x: auto;
   font-size: 0.85rem;
-
   background: rgba(97, 86, 227, 0.9);
   padding: 0.25rem;
   margin-right: 2px;
@@ -996,21 +1066,22 @@ div.p-togglebutton.p-component {
 }
 
 span.p-button-label.p-c {
-  font-size: 0.55rem;
+  height: 1.125rem;
+  font-size: 0.77rem;
 }
 @media (min-width: 660px) and (max-width: 899px) {
   span.p-button-label.p-c {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
   }
 }
 @media (min-width: 900px) and (max-width: 1199px) {
   span.p-button-label.p-c {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 }
 @media (min-width: 1200px) {
   span.p-button-label.p-c {
-    font-size: 1.125rem;
+    font-size: 1.12rem;
   }
 }
 
@@ -1078,12 +1149,17 @@ body.dark-mode .showless {
 }
 
 .toggle-all-notes {
-  text-decoration: underline;
   font-size: 0.8rem;
   cursor: pointer;
   background-color: transparent;
   color: #6156e3;
+  opacity: 0.9;
+}
+.toggle-all-notes:hover {
+  text-decoration: underline;
+  opacity: 1;
 }
 .dark-mode .toggle-all-notes {
   color: #f1f1f1;
 }
+

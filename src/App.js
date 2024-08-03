@@ -7,10 +7,12 @@ import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Chips } from 'primereact/chips';
 import { ToggleButton } from 'primereact/togglebutton';
+import { ContextMenu } from 'primereact/contextmenu';
 import moment from 'moment';
 import Linkify from 'react-linkify';  
 import ImageTextarea from './ImageTextarea';
 import CustomNavbar from './CustomNavbar';
+import DiffViewer from 'react-diff-viewer';
 import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
 import {
   ErrorBoundary,
@@ -48,6 +50,7 @@ function App() {
   const [needRerender, setNeedRerender] = useState(0);
   const [displayDraft, setDisplayDraft] = useState(false);
   const [displayDeleted, setDisplayDeleted] = useState(false);
+  const [isVisibleDiff, setIsVisibleDiff] = useState(false);
 
   useEffect(() => {
     setIsDarkMode(true);
@@ -62,8 +65,8 @@ function App() {
     try {
       let url = backendUrl;
       url = displayDraft ? `${backendUrl}?status=DRAFT` : url;
-      url = displayDeleted && selectedTag == "Home" ? `${backendUrl}?status=DELETED` : url;
-      url = !displayDeleted && selectedTag == "Home" ? backendUrl : url;
+      url = displayDeleted && selectedTag == "I worked on" ? `${backendUrl}?status=DELETED` : url;
+      url = !displayDeleted && selectedTag == "I worked on" ? backendUrl : url;
       const res = await axios.get(url, { headers: { 'X-API-KEY': apiKey } });
       setNotes(res.data);
       setFilteredNotes(res.data);
@@ -108,9 +111,12 @@ function App() {
     window.history.pushState(null, null, publicUrl);
   };
 
+  const [lastSavedText, setLastSavedText] = useState('');
+  const [showDiff, setShowDiff] = useState(false);
+
   const submit = async (data) => {
     if (data.title.includes('[DRAFT]')) { data.status = 'DRAFT' }
-    if (!data.title.includes('[DELETED]') && data.status == 'DELETED' && !data.title.includes('[DRAFT]')) { data.status = 'ACTIVE' }
+    if (!data.title.includes('[DELETED]') && !data.title.includes('[DRAFT]') && (data.status == 'DELETED' || data.status == 'DRAFT')) { data.status = 'ACTIVE' }
     const noteData = {
       ...data,
       updateDate: date,
@@ -128,7 +134,17 @@ function App() {
         const updatedNotes = [...notes, res.data];
         setNotes(updatedNotes);
         filterNotesByTag(selectedTag, updatedNotes);
+        noteData.id = res.data.id;
+        setLastSavedText(noteData.content); // Update the last saved text after save
       }
+      // Prefix the title and ID of the current note to note 1's content
+      const newNotePrefixed = `☕︎ ${noteData.title} : ${publicUrl}/#note-${noteData.id}`;
+      const currentNote1Lines = note1Content.split('\n').filter(line => line.trim() !== newNotePrefixed); // Remove duplicates
+      const newNote1Lines = [newNotePrefixed, ...currentNote1Lines].slice(0, 10); // Keep only the first 10 lines
+      const newNote1Content = newNote1Lines.join('\n');
+      setNote1Content(newNote1Content);
+      updateNote1InFilteredNotes(newNote1Content);
+      await axios.put(`${backendUrl}/1`, { id: 1, title: "I worked on", content: newNote1Content }, { headers: { 'X-API-KEY': apiKey } });
     } catch (error) {
       console.error('Error adding/editing note:', error);
     }
@@ -137,7 +153,16 @@ function App() {
     setIsVisible(false);
     setIsEditMode(false);
     if (displayDeleted) {fetchNotes();}
+    // Redirect to Home if filtering by note (needRerender) or tag. On main page rerender already triggered, no scroll
+    if (needRerender != 0) {clearFilter();scrollToTop();fetchNotes();console.log()};
+    if (selectedTag != null) {clearFilter();scrollToTop();setSelectedTag(null);fetchNotes();};
   };
+
+  const handleToggleDiff = () => {
+    setIsVisibleDiff(!isVisibleDiff);
+  };
+
+  const currentText = watch('content');
   
   const handleEditNote = async id => {
     setIsVisible(true);
@@ -147,6 +172,7 @@ function App() {
     const noteTags = note.tags.map(tag => tag.label);
     setTags(noteTags);
     resetModalForm(note);
+    setLastSavedText(note.content);
     if (id) {setText(note.content)}
   };  
 
@@ -387,19 +413,138 @@ function App() {
       return newOpenIds;
     });
   };
+  
+  const handleDraftClick = () => {
+    const currentTitle = watch('title');
+    if (!currentTitle.startsWith('[DRAFT]')) {
+      setValue('title', '[DRAFT] ' + currentTitle);
+    }
+  };
+
+  const handleArchivedClick = () => {
+    const currentTitle = watch('title');
+    if (!currentTitle.startsWith('[ARCHIVED]')) {
+      setValue('title', '[ARCHIVED] ' + currentTitle);
+    }
+  };
+
+  const cm = useRef(null);
+
+  const contextMenuItems = [
+    {
+      label: 'Draft',
+      icon: 'pi pi-fw pi-file',
+      command: () => {
+        handleDraftClick();
+      }
+    },
+    {
+      label: 'Archived',
+      icon: 'pi pi-fw pi-box',
+      command: () => {
+        handleArchivedClick();
+      }
+    }
+  ];
+
+  const CustomHeaderWithMenu = ({ label, contextMenuItems }) => {
+  
+    return (
+      <div className="custom-header-items">
+        <span>{label}</span>
+        <span className="custom-header-menu status" onClick={(e) => cm.current.show(e)}>...status</span>
+        <ContextMenu model={contextMenuItems} ref={cm} />
+
+      </div>
+    );
+  };
+
+  // Add or remove the no-scroll-if-dialog class to the body element when the dialog visibility changes
+  useEffect(() => {
+    if (isVisible) {
+      document.body.classList.add('no-scroll-if-dialog');
+    } else {
+      document.body.classList.remove('no-scroll-if-dialog');
+    }
+    return () => {
+      document.body.classList.remove('no-scroll-if-dialog');
+    };
+  }, [isVisible]);
+
+  const [note1Content, setNote1Content] = useState('');
+
+  useEffect(() => {
+    // Fetch the content of note with ID 1 on initial page load
+    const fetchNote1Content = async () => {
+      try {
+        const res = await axios.get(`${backendUrl}/1`, { headers: { 'X-API-KEY': apiKey } });
+        setNote1Content(res.data.content);
+      } catch (error) {
+        console.error('Error fetching note 1:', error);
+      }
+    };
+    fetchNote1Content();
+  }, []);
+
+  const updateNote1InFilteredNotes = (newContent) => {
+    setFilteredNotes(prevNotes =>
+      prevNotes.map(note =>
+        note.id === 1 ? { ...note, content: newContent } : note
+      )
+    );
+  };
+
+  const diffViewerStyles = {
+    variables: {
+      dark: {
+        diffViewerBackground: '#2b2b2b',
+        diffViewerColor: '#FFF',
+        addedBackground: '#014642',
+        addedColor: 'white',
+        removedBackground: '#602a23',
+        removedColor: 'white',
+        wordAddedBackground: '#025856',
+        wordRemovedBackground: '#7a332e',
+        addedGutterBackground: '#003c37',
+        removedGutterBackground: '#60261f',
+        gutterBackground: '#292a29',
+        gutterBackgroundDark: '#232422',
+        highlightBackground: '#273456',
+        highlightGutterBackground: '#2a3b66',
+        codeFoldGutterBackground: '#1e1e1a',
+        codeFoldBackground: '#232320',
+        emptyLineBackground: '#333435',
+        gutterColor: '#434756',
+        addedGutterColor: '#8c8c8c',
+        removedGutterColor: '#8c8c8c',
+        codeFoldContentColor: '#c7d2fe',
+        diffViewerTitleBackground: '#2c2d2d',
+        diffViewerTitleColor: '#555a7b',
+        diffViewerTitleBorderColor: '#323335',
+      },
+    },
+    lineNumber: {
+      color: '#aaa'
+    },
+    line: {
+      '&:hover': {
+        background: '#333',
+      },
+    },
+  };
 
   return (  
     <div className="container">
      <div className="main"><br></br>
       <header>
-       <button onClick={() => { setDisplayDeleted(false); handleTagClick("Home") }} disabled={selectedTag=="Home"}
+       <button onClick={() => { setDisplayDeleted(false); handleTagClick("I worked on") }} disabled={selectedTag=="I worked on"}
         className="home pi pi-home"></button>
        <h2>Welcome back, Jeroen</h2>
        <label style={{ marginTop: '4px' }}className="theme-switch">
           <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
           <span className="slider round"></span>
        </label></header><br></br>
-       { /* selectedTag !== "Home" && (
+       { /* selectedTag !== "I worked on" && (
          <SearchProvider config={config}>
          <SearchBox
               className="searchlabel show-cancel-button"
@@ -421,32 +566,32 @@ function App() {
         }}
         style={{ width: '90%', position: 'relative', left: '14px' }}
       />
-      <ToggleButton className="toggle" disabled={selectedTag=="Home"} checked={displayDraft} onChange={e => setDisplayDraft(e.value)}
+      <ToggleButton className="toggle" disabled={selectedTag=="I worked on"} checked={displayDraft} onChange={e => setDisplayDraft(e.value)}
         onLabel="" offLabel="" onIcon="pi pi-file" offIcon="pi pi-file-check"></ToggleButton >    
       <br></br><br></br>
-      {selectedTag && selectedTag !== "Home" && (
+      {selectedTag && selectedTag !== "I worked on" && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4>
+          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4><br></br>
         </div>
       )}
       {needRerender !== 0 && !selectedTag && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4>
+          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4><br></br>
         </div>
       )}      
       <Dialog
-        header={isEditMode ? "Edit note" : "Create note"}
+        header={<CustomHeaderWithMenu label={isEditMode ? "Edit note" : "Create note"} contextMenuItems={contextMenuItems} />}
         visible={isVisible}
         onHide={() => {
-          setIsEditMode(false);
           setIsVisible(false);
           setTags([]);
+          setIsEditMode(false);
           resetModalForm({ title: '', content: '' });
           setText("");
         }}
-      >
+      >     
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
             style={{ width: '99%', borderRadius: '5px', marginTop: '5px', marginBottom: '5px' }}
@@ -464,8 +609,26 @@ function App() {
             placeholder="Add tags"
             className="p-chips-input-token"
           />
-          <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />
+          <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
+          <Button style={{ marginBottom: '9px', backgroundColor: "#2B2B2B", border: 0, cursor: 'pointer' }}
+                  unstyled tooltip='show diff' icon="pi pi-arrow-right-arrow-left" type="button"
+                  onClick={handleToggleDiff} />
         </form>
+        {isVisibleDiff && (
+          <Dialog contentClassName="diff" headerClassName="diff"
+          style={{ fontSize: '0.8rem', width: '100vw', height: '100vh', maxWidth: '1880px', overflowY: 'scroll' }}
+            visible={isVisibleDiff}
+            onHide={() => setIsVisibleDiff(false)}>
+            <DiffViewer
+            useDarkTheme
+            styles={diffViewerStyles}
+            oldValue={lastSavedText}
+            newValue={currentText}
+            splitView={true}
+            disableWordDiff={false}
+            />
+          </Dialog>
+        )}
       </Dialog>
       <CustomNavbar selectedTag={selectedTag} scrollToTop={scrollToTop} clearFilter={clearFilter} setDisplayDeleted={setDisplayDeleted} displayDeleted={displayDeleted}></CustomNavbar>
       <Accordion open={allNotesOpenRef.current} toggle={toggle} toggleShowMore={toggleShowMore} flush>
@@ -551,11 +714,11 @@ function App() {
                   borderRight: '1px solid red',
                   borderBottomLeftRadius: '6px',
                   borderBottomRightRadius: '6px',
-                  maxHeight: showMore ? 'none' : '300px',
+                  maxHeight: showMore ? 'none' : '275px',
                   overflow: 'hidden',
                   position: 'relative'
                 } : {
-                  maxHeight: showMore ? 'none' : '300px',
+                  maxHeight: showMore ? 'none' : '275px',
                   overflow: 'hidden',
                   position: 'relative'
                 }}
@@ -565,16 +728,16 @@ function App() {
                   {note.content ? enhanceNoteText(note.content) : ''}
                   <span style={{ opacity: 0.4 }}>
                     <p></p>
-                    {note.updateDate && note.title !== "Home" ? "Last updated: " + note.updateDate.split('.')[0].replace('T', ' ').slice(0, 16) : ''}
+                    {note.updateDate && note.title !== "I worked on" ? "Last updated: " + note.updateDate.split('.')[0].replace('T', ' ').slice(0, 16) : ''}
                   </span>
                 </Linkify>
                 <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
-                  {selectedTag === "Home" && note.tags.map(tag => (
+                  {selectedTag === "I worked on" && note.tags.map(tag => (
                     <a key={`tag-${tag.id}`}>
                       <span className="badge disabled bg-light rounded-pill" key={tag.id}>{tag.label}</span>
                     </a>
                   ))}
-                  {selectedTag !== "Home" && note.tags.map(tag => (
+                  {selectedTag !== "I worked on" && note.tags.map(tag => (
                     <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
                       <span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span>
                     </a>
@@ -609,7 +772,7 @@ function App() {
       <br></br><br></br><center><p>Contact the <a href="https://www.adambahri.com/contact" target="_blank" rel="noopener noreferrer">
       <span className='footer-link'>author</span></a> of this app</p></center>
       </div>
-      {selectedTag != "Home" && (
+      {selectedTag != "I worked on" && (
         <div className="sidebar">
           <span className="toggle-all-notes" onClick={toggleAllNotes}>
             {allNotesOpenRef.current ? 'Fold All Notes' : 'Unfold All Notes'}

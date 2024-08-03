@@ -1,9 +1,8 @@
 import React from 'react';
 import { Button } from 'primereact/button';
-import { ToggleButton } from 'primereact/togglebutton';
 
 const CustomNavbar = ({ selectedTag, scrollToTop, clearFilter, setDisplayDeleted, displayDeleted }) => {
-  if (selectedTag !== "Home" || (displayDeleted && selectedTag !== "Home") ) {
+  if (selectedTag !== "I worked on" || (displayDeleted && selectedTag !== "I worked on") ) {
     return null;
   }
 
