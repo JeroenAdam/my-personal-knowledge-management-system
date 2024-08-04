@@ -177,11 +177,16 @@ function App() {
   };  
 
   const handleDeleteNote = async (id) => {
-    const noteToDelete = notes.find(n => n.id === id);
+    const noteToDelete = filteredNotes.find(n => n.id === id);
     if (!noteToDelete) { throw new Error('Note not found'); }
     // hard delete
     if (noteToDelete.status == 'DELETED') {
       try {
+        // Remove the note's reference from note 1
+        const noteReferenceToRemove = `${publicUrl}/#note-${noteToDelete.id}`;
+        const updatedNote1Content = note1Content.split('\n').filter(line => !line.includes(noteReferenceToRemove)).join('\n');
+        setNote1Content(updatedNote1Content);
+        await axios.put(`${backendUrl}/1`, { id: 1, title: "I worked on", content: updatedNote1Content }, { headers: { 'X-API-KEY': apiKey } });
         await axios.delete(`${backendUrl}/${id}`, { headers: { 'X-API-KEY': apiKey } });
         const updatedNotes = notes.filter(note => note.id !== id);
         setNotes(updatedNotes);
@@ -413,7 +418,7 @@ function App() {
       return newOpenIds;
     });
   };
-  
+
   const handleDraftClick = () => {
     const currentTitle = watch('title');
     if (!currentTitle.startsWith('[DRAFT]')) {
@@ -452,7 +457,7 @@ function App() {
     return (
       <div className="custom-header-items">
         <span>{label}</span>
-        <span className="custom-header-menu status" onClick={(e) => cm.current.show(e)}>...status</span>
+        <span className="custom-header-menu-status" onClick={(e) => cm.current.show(e)}><i className="pi pi-bars"></i></span>
         <ContextMenu model={contextMenuItems} ref={cm} />
 
       </div>
@@ -591,7 +596,7 @@ function App() {
           resetModalForm({ title: '', content: '' });
           setText("");
         }}
-      >     
+      >
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
             style={{ width: '99%', borderRadius: '5px', marginTop: '5px', marginBottom: '5px' }}
@@ -610,8 +615,7 @@ function App() {
             className="p-chips-input-token"
           />
           <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
-          <Button style={{ marginBottom: '9px', backgroundColor: "#2B2B2B", border: 0, cursor: 'pointer' }}
-                  unstyled tooltip='show diff' icon="pi pi-arrow-right-arrow-left" type="button"
+          <Button className="showdiff" unstyled tooltip='show diff' icon="pi pi-arrow-right-arrow-left" type="button"
                   onClick={handleToggleDiff} />
         </form>
         {isVisibleDiff && (
@@ -726,7 +730,7 @@ function App() {
               >
                 <Linkify componentDecorator={linkDecorator}>
                   {note.content ? enhanceNoteText(note.content) : ''}
-                  <span style={{ opacity: 0.4 }}>
+                  <span style={{ opacity: 0.45, fontWeight: 300 }}>
                     <p></p>
                     {note.updateDate && note.title !== "I worked on" ? "Last updated: " + note.updateDate.split('.')[0].replace('T', ' ').slice(0, 16) : ''}
                   </span>
