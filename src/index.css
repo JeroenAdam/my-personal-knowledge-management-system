@@ -73,20 +73,29 @@ body.dark-mode h2,
 body.dark-mode h3,
 body.dark-mode h4,
 body.dark-mode p {
-  color: #e0e0e0;
+  color: #d2d2d2;
 }
 body.dark-mode span {
-  color: #fff;
+  color: #d2d2d2;
 }
+
 a {
+  text-decoration: none;
   color: #c7d2fe;
+  opacity: 0.95;
 }
-a:hover {
-  color: #d0e1fd;
+.accordion-body a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px; 
 }
+.accordion-body .badges a:hover {
+  text-decoration: none;
+}
+
 h4 {
   margin-top: 4px;
 }
+
 pre {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', 'Liberation Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   margin-top: 0.5rem;
@@ -290,7 +299,7 @@ span.notes-header-link:hover {
   margin-bottom: 1px;
   padding: 3px;
   padding-left: 3px;
-  font-size: 0.9rem;
+  font-size: 0.925rem;
   white-space: nowrap;
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
@@ -315,13 +324,13 @@ span.notes-header-link:hover {
 }
 
 .notes-menu-accordion-body {
-  background-color: rgba(97, 86, 227, 0.80);
   color: white;
+  background-color: rgba(97, 86, 227, 0.80);
   padding-top: 8px;
   padding: 12px;
   padding-right: 10px;
   padding-bottom: 16px;
-  font-size: 0.9rem;
+  font-size: 0.925rem;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
 }
@@ -338,7 +347,7 @@ span.notes-header-link:hover {
   padding-right: 0.65em;
   padding-top: 0.35em;
   padding-bottom: 0.35em;
-  font-size: 0.9em; 
+  font-size: 0.925em; 
 }
 
 .badge.bg-light {
@@ -441,6 +450,7 @@ span.notes-header-link:hover {
 .p-dialog-content.diff {
   padding-left: 0px;
   padding-right: 0px;
+  opacity: 0.96;
 }
 
 .showdiff {
@@ -453,6 +463,7 @@ span.notes-header-link:hover {
 
 .p-tooltip-text {
   background-color: transparent;
+  opacity: 0.75;
 }
 textarea {
   resize: both;
@@ -476,8 +487,11 @@ body.dark-mode textarea::-webkit-resizer {
 .dark-mode .p-dialog-header,
 .dark-mode .notes-header-edit,
 .dark-mode .p-dialog-content {
-  color: #e0e0e0;
+  color: #d2d2d2;
   background-color: #2B2B2B;
+}
+.dark-mode .p-dialog-header.diff {
+  opacity: 0.96;
 }
 .dark-mode .p-dialog-content {
   padding-bottom: 1.33rem;
@@ -492,8 +506,7 @@ body.dark-mode textarea::-webkit-resizer {
 .dark-mode .badge,
 .dark-mode .badge.bg-light {
   background-color: #222;
-  color: #e0e0e0;
-  opacity: 0.95;
+  color: #d2d2d2  ;
 }
 .dark-mode .notes-header-edit:hover,
 .dark-mode .notes-menu-accordion-body:hover {
@@ -542,7 +555,7 @@ body.dark-mode textarea::-webkit-resizer {
 .dark-mode .p-chips .p-chips-multiple-container,
 .dark-mode .p-chips-multiple-container
 {
-  color: #E0E0E0;
+  color: #d2d2d2;
   border-color: #999;
   background-color: #222;
 }
@@ -694,13 +707,12 @@ input:checked + .slider:before {
 }
 
 body.dark-mode .p-button {
-  background-color: #111;
+  background-color: #000;
   border: 1px solid #999999;
 }
-
 body.dark-mode .p-button:hover {
-  background-color: #222;
-  border-color: #999999;
+  background-color: #2d2d2d;
+  border-color: #fff;
 }
 
 body.dark-mode .p-button.p-component.p-button-outlined {
@@ -911,11 +923,11 @@ body.dark-mode .p-button:focus {
 } 
 
 .related-tags {
-  font-size: 0.9em; 
+  font-size: 0.925em; 
   border: 1px solid #6366f1;
   border-radius: 12px;
-  padding-left: 0.66rem;
-  padding-right: 0.5rem;
+  padding-left: 0.56rem;
+  padding-right: 0.4rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   margin-top: 15px;
@@ -939,7 +951,7 @@ body.dark-mode .p-button:focus {
 }
 
 div.drop-zone {
-  margin-bottom: 10px;
+  margin-bottom: 7px;
 }
 .drop-zone label{
   font-size: 0.85rem; 
@@ -1042,6 +1054,18 @@ div.drop-zone {
   max-width: none;
   width: auto;
   height: auto;
+  border-radius: 6px;
+  display: block; 
+}
+.tooltiptext video {
+  position: relative;
+  z-index: 3;
+  border-radius: 6px;
+  display: block; 
+}
+.tooltiptext iframe {
+  position: relative;
+  z-index: 3;
   border-radius: 6px;
   display: block; 
 }

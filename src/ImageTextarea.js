@@ -32,7 +32,7 @@ const ImageTextarea = ({ initialText, onTextChange, registerModal, setValue, wat
         responseType: 'text', // Specify response type as text
       }).then(response => {
         if (response.status === 200) {
-          const uploadedFilename = response.data.trim();
+          const uploadedFilename = response.data.trim()+"\n";
           const newContent = insertAtCursor(initialText, uploadedFilename, cursorPosition);
           setNewText(newContent); // Update local state with new text
           const e = {target: {value: newContent}};

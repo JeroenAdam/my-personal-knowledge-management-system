@@ -9,7 +9,7 @@ import { Chips } from 'primereact/chips';
 import { ToggleButton } from 'primereact/togglebutton';
 import { ContextMenu } from 'primereact/contextmenu';
 import moment from 'moment';
-import Linkify from 'react-linkify';  
+import Linkify from 'react-linkify';
 import ImageTextarea from './ImageTextarea';
 import CustomNavbar from './CustomNavbar';
 import DiffViewer from 'react-diff-viewer';
@@ -266,6 +266,15 @@ function App() {
         <video className="images" controls key={key}>
           <source src={encodedHref} type={`video/${href.split('.').pop()}`} />
         </video>
+      );
+    }
+    if (href.includes(publicUrl + "/#note-")) {
+      const parts = href.split("#note-");
+      const noteId = parts[1];
+      return (
+        <a href={encodedHref} key={key}>
+          {"#"+noteId}
+        </a>
       );
     }
     if (href.includes(publicUrl)) {
@@ -599,7 +608,7 @@ function App() {
       >
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
-            style={{ width: '99%', borderRadius: '5px', marginTop: '5px', marginBottom: '5px' }}
+            style={{ width: '99%', borderRadius: '5px', marginTop: '4px', marginBottom: '4px' }}
             name="title"
             placeholder="Title"
             {...registerModal('title', { required: 'Required' })}
@@ -607,14 +616,14 @@ function App() {
           />
           <ImageTextarea initialText={text} setValue={setValue} onTextChange={handleTextChange} registerModal={registerModal} watch={watch}/> 
           <Chips
-            style={{ width: '99%', borderRadius: '5px', marginTop: '5px' }}
+            style={{ width: '99%', borderRadius: '5px', marginTop: '4px' }}
             value={tags}
             onChange={(e) => setTags(e.value)}
             separator=","
             placeholder="Add tags"
             className="p-chips-input-token"
           />
-          <Button style={{ marginTop: '24px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
+          <Button style={{ marginTop: '13px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
           <Button className="showdiff" unstyled tooltip='show diff' icon="pi pi-arrow-right-arrow-left" type="button"
                   onClick={handleToggleDiff} />
         </form>
@@ -735,7 +744,7 @@ function App() {
                     {note.updateDate && note.title !== "I worked on" ? "Last updated: " + note.updateDate.split('.')[0].replace('T', ' ').slice(0, 16) : ''}
                   </span>
                 </Linkify>
-                <div style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
+                <div className="badges" style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
                   {selectedTag === "I worked on" && note.tags.map(tag => (
                     <a key={`tag-${tag.id}`}>
                       <span className="badge disabled bg-light rounded-pill" key={tag.id}>{tag.label}</span>
