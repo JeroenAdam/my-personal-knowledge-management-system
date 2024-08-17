@@ -8,7 +8,8 @@ My PKM app enables the storage, structuring, and retrieval of information and kn
   
  
     
-![image](https://github.com/user-attachments/assets/60354985-52b5-4040-93eb-a172805e9949)
+![image](https://github.com/user-attachments/assets/c7db42df-7634-466a-ad6f-d93ff1b6d3bb)
+
  
   
 ![image](https://github.com/user-attachments/assets/99c0c40c-20dd-42cf-bb17-23a78f8fc886)

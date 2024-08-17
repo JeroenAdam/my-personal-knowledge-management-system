@@ -191,12 +191,14 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 ::-webkit-scrollbar-button:single-button:vertical:decrement {
   background-position: 2px center;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23444444'%3E%3Cpath d='M6 0 L12 6 L0 6 Z'/%3E%3C/svg%3E");
+  background-color: #111;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23aaaaaa'%3E%3Cpath d='M6 0 L12 6 L0 6 Z'/%3E%3C/svg%3E");
 }
 
 ::-webkit-scrollbar-button:single-button:vertical:increment {
   background-position: 2px center;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23444444'%3E%3Cpath d='M6 12 L0 6 L12 6 Z'/%3E%3C/svg%3E");
+  background-color: #111;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23aaaaaa'%3E%3Cpath d='M6 12 L0 6 L12 6 Z'/%3E%3C/svg%3E");
 }
 
 .dark-mode ::-webkit-scrollbar-button:single-button:vertical:decrement {
@@ -206,7 +208,7 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 .dark-mode ::-webkit-scrollbar-button:single-button:vertical:increment {
   background-position: 2px center;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23aaaaaa  '%3E%3Cpath d='M6 12 L0 6 L12 6 Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23aaaaaa'%3E%3Cpath d='M6 12 L0 6 L12 6 Z'/%3E%3C/svg%3E");
 }
 
 /* Firefox scrollbar styles */
@@ -225,6 +227,11 @@ body::-webkit-scrollbar {
   height: 100vh;
   max-width: 880px;
   margin: auto;
+}
+.p-component-overlay {
+  flex-wrap: wrap;
+  align-content: flex-start;
+  padding-top: 10px;
 }
 .p-dialog .p-component{
   overflow: visible;
@@ -1213,3 +1220,49 @@ body.dark-mode .showless {
   color: #f1f1f1;
 }
 
+button.undoredo.firsticon {
+  margin-left: 12px;
+}
+button.undoredo:enabled {
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+}
+button.undoredo:enabled i {
+  color: #d2d2d2;
+  margin-right: 4px;
+}
+button.undoredo:disabled {
+  background-color: transparent;
+  border: 0;
+}
+button.undoredo:disabled i {
+  color: #777;
+  margin-right: 4px;
+}
+
+/* Default light theme */
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: #333;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #AAA;
+}
+
+/* Dark theme */
+.dark-mode ::-webkit-scrollbar {
+  width: 14px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: #555;
+}

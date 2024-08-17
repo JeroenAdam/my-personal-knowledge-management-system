@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Accordion, AccordionBody, AccordionHeader, AccordionItem } from 'reactstrap';
 import { useForm } from 'react-hook-form';
@@ -32,6 +32,14 @@ import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
+
+function debounce(func, delay) {
+  let timer;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 function App() {
   const backendUrl = 'http://localhost:8080/api/v1/notes';
@@ -112,7 +120,6 @@ function App() {
   };
 
   const [lastSavedText, setLastSavedText] = useState('');
-  const [showDiff, setShowDiff] = useState(false);
 
   const submit = async (data) => {
     if (data.title.includes('[DRAFT]')) { data.status = 'DRAFT' }
@@ -154,7 +161,7 @@ function App() {
     setIsEditMode(false);
     if (displayDeleted) {fetchNotes();}
     // Redirect to Home if filtering by note (needRerender) or tag. On main page rerender already triggered, no scroll
-    if (needRerender != 0) {clearFilter();scrollToTop();fetchNotes();console.log()};
+    if (needRerender != 0) {clearFilter();scrollToTop();fetchNotes()};
     if (selectedTag != null) {clearFilter();scrollToTop();setSelectedTag(null);fetchNotes();};
   };
 
@@ -165,6 +172,7 @@ function App() {
   const currentText = watch('content');
   
   const handleEditNote = async id => {
+    history.current = []; //clear the undo history
     setIsVisible(true);
     setIsEditMode(true);
     let notes = filteredNotes;
@@ -173,7 +181,7 @@ function App() {
     setTags(noteTags);
     resetModalForm(note);
     setLastSavedText(note.content);
-    if (id) {setText(note.content)}
+    if (id) {setText(note.content); history.current.push(note.content); setCurrentIndex(0); } // set initial text for undo history
   };  
 
   const handleDeleteNote = async (id) => {
@@ -267,6 +275,12 @@ function App() {
           <source src={encodedHref} type={`video/${href.split('.').pop()}`} />
         </video>
       );
+    } else if (/\.(mp3)$/i.test(encodedHref)) {
+      return (
+        <audio controls key={key}>
+          <source src={encodedHref} type="audio/mpeg" />
+        </audio>
+      );
     }
     if (href.includes(publicUrl + "/#note-")) {
       const parts = href.split("#note-");
@@ -310,9 +324,53 @@ function App() {
   };
 
   const [text, setText] = useState('');
-  const handleTextChange = (newText) => {
-    setText(newText);
-    // console.log("The main app has received and set new text", newText)
+
+  const history = useRef([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const isUndoing = useRef(false); // New flag to track undo state
+
+  const updateText = useCallback((newText) => {
+    if (newText == null) {
+      return;
+    }
+
+    if (isUndoing.current) {
+      isUndoing.current = false;
+      return;
+    }
+
+    const words = newText.trim().split(/\s+/);
+    const currentWords = text.trim().split(/\s+/);
+
+    if (words.length !== currentWords.length) {
+      setText(newText);
+      // console.log("The main app has received and set new text", newText)
+
+      if (currentIndex < history.current.length - 1) {
+        history.current = history.current.slice(0, currentIndex + 1);
+      }
+
+      history.current.push(newText);
+      setCurrentIndex(currentIndex + 1);
+      // console.log("index ", currentIndex + 1, ", text pushed: ", newText); 
+    }
+  }, [text, currentIndex]);
+
+  const debouncedUpdateText = useCallback(debounce(updateText, 300), [updateText]);
+
+  const handleUndo = () => {
+    if (currentIndex > 0) {
+      // isUndoing.current = true; Set the flag before undoing
+      setCurrentIndex(currentIndex - 1);
+      setText(history.current[currentIndex - 1]);
+    }
+  };
+
+  const handleRedo = () => {
+    if (currentIndex < history.current.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setText(history.current[currentIndex + 1]);
+    }
   };
 
   const connector = new ElasticsearchAPIConnector({
@@ -448,6 +506,7 @@ function App() {
     {
       label: 'Draft',
       icon: 'pi pi-fw pi-file',
+      style: { transform: 'Scale(0.9)'},
       command: () => {
         handleDraftClick();
       }
@@ -455,20 +514,23 @@ function App() {
     {
       label: 'Archived',
       icon: 'pi pi-fw pi-box',
+      style: { transform: 'Scale(0.9)'},
       command: () => {
         handleArchivedClick();
       }
     }
   ];
 
-  const CustomHeaderWithMenu = ({ label, contextMenuItems }) => {
+  const CustomHeaderWithMenu = ({ label, contextMenuItems, handleUndo, handleRedo, currentIndex, historyLength, lastSavedText }) => {
   
     return (
       <div className="custom-header-items">
         <span>{label}</span>
+        <button className="undoredo firsticon" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleUndo() }}
+                disabled={currentIndex <= 0 || text === lastSavedText || text === "" }><i className="pi pi-undo"></i></button>
+        <button className="undoredo" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRedo() }} disabled={currentIndex >= historyLength - 1}><i className="pi pi-refresh"></i></button>
         <span className="custom-header-menu-status" onClick={(e) => cm.current.show(e)}><i className="pi pi-bars"></i></span>
         <ContextMenu model={contextMenuItems} ref={cm} />
-
       </div>
     );
   };
@@ -575,6 +637,7 @@ function App() {
         icon="pi pi-plus"
         outlined
         onClick={(e) => {
+          history.current = []; history.current.push(""); setCurrentIndex(0); //prepare the undo history
           setText("");
           setIsVisible(true)
         }}
@@ -596,16 +659,17 @@ function App() {
         </div>
       )}      
       <Dialog
-        header={<CustomHeaderWithMenu label={isEditMode ? "Edit note" : "Create note"} contextMenuItems={contextMenuItems} />}
-        visible={isVisible}
-        onHide={() => {
-          setIsVisible(false);
-          setTags([]);
-          setIsEditMode(false);
-          resetModalForm({ title: '', content: '' });
-          setText("");
-        }}
-      >
+        header={<CustomHeaderWithMenu label={isEditMode ? "Edit note" : "Create note"}
+                  contextMenuItems={contextMenuItems} handleUndo={handleUndo} handleRedo={handleRedo} currentIndex={currentIndex} historyLength={history.current.length} lastSavedText={lastSavedText} />}
+                  visible={isVisible}
+                  onHide={() => {
+                    setIsVisible(false);
+                    setTags([]);
+                    setIsEditMode(false);
+                    resetModalForm({ title: '', content: '' });
+                    setText("");
+                  }}
+                >
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
             style={{ width: '99%', borderRadius: '5px', marginTop: '4px', marginBottom: '4px' }}
@@ -613,8 +677,8 @@ function App() {
             placeholder="Title"
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
-          />
-          <ImageTextarea initialText={text} setValue={setValue} onTextChange={handleTextChange} registerModal={registerModal} watch={watch}/> 
+          />         
+          <ImageTextarea initialText={text} setValue={setValue} onTextChange={debouncedUpdateText} register={registerModal} watch={watch}/> 
           <Chips
             style={{ width: '99%', borderRadius: '5px', marginTop: '4px' }}
             value={tags}
@@ -623,7 +687,7 @@ function App() {
             placeholder="Add tags"
             className="p-chips-input-token"
           />
-          <Button style={{ marginTop: '13px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
+          <Button style={{ marginTop: '18px' }} size="small" type="submit" label="Save" />&nbsp;&nbsp;
           <Button className="showdiff" unstyled tooltip='show diff' icon="pi pi-arrow-right-arrow-left" type="button"
                   onClick={handleToggleDiff} />
         </form>
@@ -643,7 +707,8 @@ function App() {
           </Dialog>
         )}
       </Dialog>
-      <CustomNavbar selectedTag={selectedTag} scrollToTop={scrollToTop} clearFilter={clearFilter} setDisplayDeleted={setDisplayDeleted} displayDeleted={displayDeleted}></CustomNavbar>
+      <CustomNavbar selectedTag={selectedTag} scrollToTop={scrollToTop} clearFilter={clearFilter} setDisplayDeleted={setDisplayDeleted} displayDeleted={displayDeleted}
+      ></CustomNavbar>
       <Accordion open={allNotesOpenRef.current} toggle={toggle} toggleShowMore={toggleShowMore} flush>
       {filteredNotes.map((note, i) => {
         const id = `entity-${i}`;
