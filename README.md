@@ -1,20 +1,20 @@
 # Introduction
 
-My PKM app enables the storage, structuring, and retrieval of information and knowledge. It supports text, images, files, videos, internal links, tags and search. Ideal for learning, research, work procedures, and personal note structuring. Built with Spring Boot 3.3 and React 18. Elasticsearch implementation is planned.
+My PKM app enables the storage, structuring, and retrieval of information/knowledge. It supports text, images, files, videos, internal links, tags and search. Ideal for learning, research, work procedures, and personal note structuring. Built with Spring Boot 3.3, React 18 and Elasticsearch.
 
 # Screenshots
  
-![pkms](https://github.com/user-attachments/assets/addaff38-5217-4da2-abe2-160d287270c7)
-  
+![pkms-latest](https://github.com/user-attachments/assets/82e26462-ebf7-41db-9437-cda8ca3eae81)
  
     
 ![image](https://github.com/user-attachments/assets/c7db42df-7634-466a-ad6f-d93ff1b6d3bb)
 
  
-  
 ![image](https://github.com/user-attachments/assets/99c0c40c-20dd-42cf-bb17-23a78f8fc886)
- 
- 
+
+
+![pkms-search](https://github.com/user-attachments/assets/0a32ae51-8e27-4414-b6a9-426f4048f7ec)
+
 
 # Installing a development server (Windows)
 
@@ -113,7 +113,7 @@ git clone https://github.com/JeroenAdam/my-personal-knowledge-management-system
 cd my-personal-knowledge-management-system
 ```
 
-Edit `App.js` and `ImageTextarea.js` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
+Edit `App.js` to set the `apiKey` to the value you chose for `PKMS_API_KEY`.
 
 Install the necessary dependencies and start the frontend server:
 
@@ -131,6 +131,56 @@ Go to `http://localhost:3000`. You can now start adding notes, uploading images,
 
 Your PKM app is now set up and ready.
 ![my-first-note](https://github.com/user-attachments/assets/e2d6630c-97ba-4130-96c2-045098d2ac3d)
+
+### Optional: Elasticsearch integration
+
+To get the search bar working, you'll need to set up your own Elasticsearch server.
+After that, create a role and generate an API key with both these commands:
+
+```cmd
+curl -u elastic:password -X PUT "http://localhost:9200/_security/role/notes_role" \
+-H "Content-Type: application/json" \
+-d '{
+  "cluster": ["all"],
+  "indices": [
+    {
+      "names": ["notes"],
+      "privileges": ["read", "write", "view_index_metadata"]
+    }
+  ]
+}'
+```
+
+```cmd
+curl -u elastic:password -X POST "http://localhost:9200/_security/api_key" \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "notes_api_key",
+  "role_descriptors": {
+    "notes_role": {
+      "cluster": ["all"],
+      "index": [
+        {
+          "names": ["notes"],
+          "privileges": ["read", "write", "view_index_metadata"]
+        }
+      ]
+    }
+  }
+}'
+```
+
+Next, edit `App.js` and set `elasticsearchUrl`, then set `elasticsearchApiKey` to the value returned by the last command.
+
+For setting up the backend, add these user environment variables:
+
+| Variable Name           | Value                      |
+|-------------------------|----------------------------|
+| ELASTIC_URL             | http://localhost:9200      |
+| ELASTIC_USER            | elastic                    |
+| ELASTIC_PASSWORD        | password                   |
+
+The `notes` index will be automatically created on first startup.
 
 
 ### Optional: Automatic Backups

@@ -13,20 +13,7 @@ import Linkify from 'react-linkify';
 import ImageTextarea from './ImageTextarea';
 import CustomNavbar from './CustomNavbar';
 import DiffViewer from 'react-diff-viewer';
-import ElasticsearchAPIConnector from '@elastic/search-ui-elasticsearch-connector';
-import {
-  ErrorBoundary,
-  Facet,
-  SearchProvider,
-  SearchBox,
-  Results,
-  PagingInfo,
-  ResultsPerPage,
-  Paging,
-  Sorting,
-  WithSearch,
-} from '@elastic/react-search-ui';
-import { Layout, Paging as PagingView, ResultsPerPage as ResultsPerPageView } from '@elastic/react-search-ui-views';
+import SearchBox from './SearchBox'
 
 import 'primereact/resources/themes/lara-light-indigo/theme.css';
 import 'primereact/resources/primereact.min.css';
@@ -45,12 +32,15 @@ function App() {
   const backendUrl = 'http://localhost:8080/api/v1/notes';
   const publicUrl = 'http://localhost:3000';
   const apiKey = '';
+  const elasticsearchUrl = '';
+  const elasticsearchApiKey = '';
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const { reset: resetModalForm, register: registerModal, handleSubmit: handleSubmitModal, setValue, watch } = useForm();
   const date = moment().format('yyyy-MM-DDTHH:mm:ss');
   const [tags, setTags] = useState([]);
+  const [allTags, setAllTags] = useState([]);
   const [filteredNotes, setFilteredNotes] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -59,6 +49,7 @@ function App() {
   const [displayDraft, setDisplayDraft] = useState(false);
   const [displayDeleted, setDisplayDeleted] = useState(false);
   const [isVisibleDiff, setIsVisibleDiff] = useState(false);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     setIsDarkMode(true);
@@ -69,6 +60,12 @@ function App() {
     document.body.classList.toggle('dark-mode', isDarkMode);
   }, [isDarkMode]);
   
+  useEffect(() => {
+    query !== '' && setSelectedTag(null);
+    isSingleNote && needRerender !== 0 && !selectedTag && query === '' && clearFilter();
+    query === '' && filteredNotes.length > 1 && setNeedRerender(0);
+  }, [query]);
+
   const fetchNotes = async () => {
     try {
       let url = backendUrl;
@@ -87,6 +84,7 @@ function App() {
     if (isSingleNote) {
       try {
         const res = await axios.get(backendUrl+"/"+id, { headers: { 'X-API-KEY': apiKey } });
+        setQuery('');
         setIsSingleNote(false);
         filterSingleNote([res.data]);
         setSelectedTag(null);
@@ -110,7 +108,7 @@ function App() {
   }, [needRerender]);
 
   const filterNotesByTag = (tag, notesToFilter) => {
-    const filtered = tag ? notesToFilter.filter(note => note.tags.some(t => t.label === tag)) : notesToFilter;
+    const filtered = tag ? notesToFilter.filter(note => note.tags.some(t => t.label === removeMarkTags(tag))) : notesToFilter;
     setFilteredNotes(filtered);
   };
 
@@ -147,7 +145,7 @@ function App() {
       // Prefix the title and ID of the current note to note 1's content
       const newNotePrefixed = `☕︎ ${noteData.title} : ${publicUrl}/#note-${noteData.id}`;
       const currentNote1Lines = note1Content.split('\n').filter(line => line.trim() !== newNotePrefixed); // Remove duplicates
-      const newNote1Lines = [newNotePrefixed, ...currentNote1Lines].slice(0, 10); // Keep only the first 10 lines
+      const newNote1Lines = [newNotePrefixed, ...currentNote1Lines].slice(0, 13); // Keep only the first 13 lines
       const newNote1Content = newNote1Lines.join('\n');
       setNote1Content(newNote1Content);
       updateNote1InFilteredNotes(newNote1Content);
@@ -163,6 +161,7 @@ function App() {
     // Redirect to Home if filtering by note (needRerender) or tag. On main page rerender already triggered, no scroll
     if (needRerender != 0) {clearFilter();scrollToTop();fetchNotes()};
     if (selectedTag != null) {clearFilter();scrollToTop();setSelectedTag(null);fetchNotes();};
+    setQuery('');
   };
 
   const handleToggleDiff = () => {
@@ -170,16 +169,21 @@ function App() {
   };
 
   const currentText = watch('content');
-  
+
   const handleEditNote = async id => {
     history.current = []; //clear the undo history
     setIsVisible(true);
     setIsEditMode(true);
     let notes = filteredNotes;
     const note = notes.find(n => n.id === id);
-    const noteTags = note.tags.map(tag => tag.label);
+    const noteTags = note.tags.map(tag => removeMarkTags(tag.label));
     setTags(noteTags);
-    resetModalForm(note);
+    resetModalForm({
+      ...note,
+      title: removeMarkTags(note.title),
+      content: removeMarkTags(note.content),
+      tagLabels: noteTags,
+    });
     setLastSavedText(note.content);
     if (id) {setText(note.content); history.current.push(note.content); setCurrentIndex(0); } // set initial text for undo history
   };  
@@ -207,7 +211,6 @@ function App() {
     }
     // soft delete
     const tags = noteToDelete.tags.map(tag => tag.label);
-    console.log(tags);
     const updatedNote = { ...noteToDelete, title: '[DELETED] '+noteToDelete.title, status: 'DELETED', updateDate: date, tags: tags.map(tag => ({ label: tag })) };
     try {
       const res = await axios.put(`${backendUrl}/${id}`, updatedNote, { headers: { 'X-API-KEY': apiKey } });
@@ -242,14 +245,16 @@ function App() {
   }, []);
 
   const handleTagClick = (tag) => {
-    setSelectedTag(tag);
+    setSelectedTag(removeMarkTags(tag));
     setDisplayDeleted(false);
-    setFilteredNotes(notes.filter(note => note.tags.some(t => t.label === tag)));
+    setQuery('');
+    setFilteredNotes(notes.filter(note => note.tags.some(t => t.label === removeMarkTags(tag))));
     // console.log("handletagclick function: filtering by", tag, filteredNotes)
     scrollToTop();
   };
 
   const clearFilter = () => {
+    setQuery('');
     setSelectedTag(null);
     setNeedRerender(0);
     setFilteredNotes(notes);
@@ -312,6 +317,7 @@ function App() {
       setIsSingleNote(true);
       fetchOneNote(noteId);
       setNeedRerender(noteId);
+      scrollToTop();
       // console.log("id of last note:", needRerender, "compared to current from url: ", noteId);
       return;
     }   
@@ -373,52 +379,72 @@ function App() {
     }
   };
 
-  const connector = new ElasticsearchAPIConnector({
-    host: 'host',
-    index: 'index',
-    apiKey: '',
-  });
-
-  const config = {
-    /* debug: true, */
-    searchQuery: {
-      search_fields: {
-        title: { weight: 3 },
-        content: {},
-      },
-      result_fields: {
-        id: {},
-        title: { snippet: { size: 100 } },
-      },  
-    },
-    apiConnector: connector,
-  };
-
-  const sidebarNote = filteredNotes;
-  const allTags = sidebarNote.reduce((acc, note) => {
-    note.tags.forEach(tag => {
-      if (!acc.some(t => t.label === tag.label)) {
-        acc.push(tag);
+  
+  const enhanceNoteTitleOrTag = (title) => {
+    if (!title) return null;
+    const highlightRegex = /<mark>(.*?)<\/mark>/g;
+    const parts = title.split(highlightRegex);
+    return parts.map((part, index) => {
+      if (part) {
+        return (
+          <span key={index} className={index % 2 === 1 ? 'highlighted' : ''}>
+            {part}
+          </span>
+        );
       }
+      return null; // Skip empty parts
     });
-    return acc;
-  }, []);
+  };
+  
+  const removeMarkTags = (text) => { // for handleEditNote
+    return text.replace(/<mark>/g, '').replace(/<\/mark>/g, '');
+  };
   
   const enhanceNoteText = (text) => {
-    const applyInlineFormatting = (text) => { // Helper function to apply inline formatting e.g. for header lines and list item lines
+    // Helper function to detect URLs and wrap them in a <mark> tag if the search term is found in the URL
+    const highlightURLs = (text) => {
+      const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex to detect URLs
+      return text.replace(urlRegex, (url) => {
+        if (url.includes('<mark>')) {
+          // If part of the URL has a <mark> tag, remove it and wrap the whole URL
+          const cleanedUrl = url.replace(/<\/?mark>/g, '');
+          return `<mark>${cleanedUrl}</mark>`;
+        }
+        return url;
+      });
+    };
+  
+    // Process the whole content (including URLs)
+    let processedText = highlightURLs(text);
+  
+    // Apply inline formatting for other markdown-like elements, preserving the <mark> tags
+    const applyInlineFormatting = (text) => {
       const inlineRegex = /(\*\*[^*]+\*\*|__[^_]+__)/g;
       const parts = text.split(inlineRegex);
       return parts.map((part, index) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={index}>{part.slice(2, -2)}</strong>;
+          // Handle <mark> within bold text
+          const words = part.slice(2, -2).split(' ');
+          return words.map((word, wordIndex) => (
+            <strong key={`${index}-${wordIndex}`}>
+              {processMarkTags(word)}{wordIndex < words.length - 1 ? ' ' : ''}
+            </strong>
+          ));
         } else if (part.startsWith('__') && part.endsWith('__')) {
-          return <span key={index} style={{ textDecoration: 'underline' }}>{part.slice(2, -2)}</span>;
+          return (
+            <span key={index} style={{ textDecoration: 'underline' }}>
+              {processMarkTags(part.slice(2, -2))}
+            </span>
+          );
         }
-        return part;
+        return processMarkTags(part); // Apply mark processing to other parts
       });
     };
-    const regex = /(```[\s\S]*?```|---|#{1,6}\s[^\n]+|^\s*[-*]\s[^\n]+(?:\n|$))/gm; // capture different Markdown-like formats
-    const parts = text.split(regex).filter(part => part && part.trim() !== '');
+  
+    // Split content by markdown-like structure
+    const regex = /(```[\s\S]*?```|---|#{1,6}\s[^\n]+|^\s*[-*]\s[^\n]+(?:\n|$))/gm;
+    const parts = processedText.split(regex).filter(part => part && part.trim() !== '');
+  
     return parts.map((part, index) => {
       if (typeof part !== 'string') return null;
       if (part.trim() === '---') {
@@ -428,7 +454,7 @@ function App() {
         const codeContent = part.slice(3, -3).trim();
         return (
           <pre key={index} className="code-block">
-            <code>{codeContent}</code>
+            <code>{processMarkTags(codeContent)}</code> {/* Now process mark tags inside code blocks */}
           </pre>
         );
       }
@@ -446,19 +472,48 @@ function App() {
       return <span key={index}>{applyInlineFormatting(part)}</span>;
     });
   };
+  
+  // Helper function to process <mark> tags in regular text (outside URLs or markdown-like structures)
+  const processMarkTags = (text) => {
+    if (!text) return text;
+    const highlightRegex = /<mark>(.*?)<\/mark>/g;
+    const parts = text.split(highlightRegex);
+    return parts.map((part, index) => {
+      if (part) {
+        return (
+          <span key={index} className={index % 2 === 1 ? 'highlighted' : ''}>
+            {part}
+          </span>
+        );
+      }
+      return null;
+    });
+  };
 
   const [openIds, setOpenIds] = useState({});
   const [showMoreIds, setShowMoreIds] = useState({});
   const allNotesOpenRef = useRef(true); 
-  const [allOpen, setAllOpen] = useState(true);
 
-  // Set all notes to open by default
+  // Set all notes to open by default & update tags in sidebar
   useEffect(() => {
     const initialOpenIds = filteredNotes.reduce((acc, note, i) => {
       acc[`entity-${i}`] = allNotesOpenRef.current;
       return acc;
     }, {});
     setOpenIds(initialOpenIds);
+
+    const updatedTags = filteredNotes.reduce((accumulator, note) => {
+      if (Array.isArray(note.tags)) {
+        note.tags.forEach(tag => {
+          if (!accumulator.some(t => t.label === tag.label)) {
+            accumulator.push(tag);
+          }
+        });
+      }
+      return accumulator;
+    }, []);
+    setAllTags(updatedTags);
+
   }, [filteredNotes]);
 
   const toggle = (id) => {
@@ -611,6 +666,10 @@ function App() {
 
   return (  
     <div className="container">
+      {showScroll && (
+        <button onClick={scrollToTop} class="floating-button scroll-to-top"><i className="pi pi-chevron-up"></i></button>
+        )
+      }
      <div className="main"><br></br>
       <header>
        <button onClick={() => { setDisplayDeleted(false); handleTagClick("I worked on") }} disabled={selectedTag=="I worked on"}
@@ -620,18 +679,9 @@ function App() {
           <input type="checkbox" checked={isDarkMode} onChange={handleThemeChange} />
           <span className="slider round"></span>
        </label></header><br></br>
-       { /* selectedTag !== "I worked on" && (
-         <SearchProvider config={config}>
-         <SearchBox
-              className="searchlabel show-cancel-button"
-              inputProps={{ key: 'password', placeholder: 'Search...', id: 'search', type: 'search' }}
-              autocompleteMinimumCharacters={3}
-             autocompleteSuggestions={false}
-              searchAsYouType
-            />
-           </SearchProvider>
-         )
-         */ }
+
+      { elasticsearchApiKey !== '' && (<SearchBox query={query} elasticsearchApiKey={elasticsearchApiKey} elasticsearchUrl={elasticsearchUrl} setQuery={setQuery} setFilteredNotes={setFilteredNotes}/>) }
+
       <Button
         label="Add Note"
         icon="pi pi-plus"
@@ -639,20 +689,20 @@ function App() {
         onClick={(e) => {
           history.current = []; history.current.push(""); setCurrentIndex(0); //prepare the undo history
           setText("");
-          setIsVisible(true)
+          setIsVisible(true);
         }}
         style={{ width: '90%', position: 'relative', left: '14px' }}
       />
-      <ToggleButton className="toggle" disabled={selectedTag=="I worked on"} checked={displayDraft} onChange={e => setDisplayDraft(e.value)}
+      <ToggleButton className="toggle" disabled={selectedTag=="I worked on"} checked={displayDraft} onChange={e => { setDisplayDraft(e.value); setQuery(''); } }
         onLabel="" offLabel="" onIcon="pi pi-file" offIcon="pi pi-file-check"></ToggleButton >    
       <br></br><br></br>
-      {selectedTag && selectedTag !== "I worked on" && (
+      {selectedTag && selectedTag !== "I worked on" && query === '' && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
-          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {selectedTag}</h4><br></br>
+          <h4>&nbsp;&nbsp;&nbsp;&nbsp;{'Filtering by tag:'} {removeMarkTags(selectedTag)}</h4><br></br>
         </div>
       )}
-      {needRerender !== 0 && !selectedTag && (
+      {needRerender !== 0 && !selectedTag && query === '' && (
         <div>
           <Button icon="pi pi-filter-slash" style={{ width: '96%', position: 'relative', left: '14px', border: "2px solid white" }} label="Clear Filter" onClick={clearFilter} />
           <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4><br></br>
@@ -678,7 +728,7 @@ function App() {
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
           />         
-          <ImageTextarea initialText={text} setValue={setValue} onTextChange={debouncedUpdateText} register={registerModal} watch={watch}/> 
+          <ImageTextarea apiKey={apiKey} initialText={text} setValue={setValue} onTextChange={debouncedUpdateText} register={registerModal} watch={watch}/> 
           <Chips
             style={{ width: '99%', borderRadius: '5px', marginTop: '4px' }}
             value={tags}
@@ -739,7 +789,7 @@ function App() {
                 >
                   <i className="pi pi-pencil"></i>
                 </span>
-                <span style={{ marginLeft: '0.5rem' }}>{note.title}</span>
+                <span style={{ marginLeft: '0.5rem' }}>{note.title ? enhanceNoteTitleOrTag(note.title) : ''}</span>
                 <span
                   style={{ marginLeft: '0.75rem', cursor: 'pointer' }}
                   className="notes-header-link"
@@ -765,22 +815,26 @@ function App() {
                     handleDeleteNote(note.id);
                   }}
                 ></span>
-                {note.linked && note.linked.map(linked => (
-                  linked.referrer && (
-                    <a
-                      style={{ marginLeft: 'auto', opacity: '0.5', cursor: 'pointer', textDecoration: 'underline' }}
-                      key={`linked-${linked.id}`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        window.location.replace(publicUrl + "/#note-" + linked.referrer.id);
-                      }}
-                    >
-                      <i style={{ color: '#FFF', marginRight: '4px', height: '22px' }} className="pi pi-undo"></i>
-                      <span key={linked.id}>{linked.referrer.title}</span>
-                    </a>
-                  )
-                ))}
+  {note.linkLabels && note.linkLabels.map((linkLabel, index) => {
+    // Split the linkLabel string into id and title
+    const [id, ...titleParts] = linkLabel.split(' '); // Extract ID and the title parts
+    const title = titleParts.join(' '); // Join the rest to form the title
+
+    return (
+      <a
+        style={{ marginLeft: 'auto', opacity: '0.5', cursor: 'pointer', textDecoration: 'underline' }}
+        key={`linked-${id}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.replace(publicUrl + "/#note-" + id); // Navigate to the note using the extracted ID
+        }}
+      >
+        <i style={{ color: '#FFF', marginRight: '4px', height: '22px' }} className="pi pi-undo"></i>
+        <span>{title}</span> {/* Display the extracted title */}
+      </a>
+    );
+  })}
               </div>
             </AccordionHeader>
 
@@ -811,13 +865,13 @@ function App() {
                 </Linkify>
                 <div className="badges" style={{ marginTop: '15px', display: 'flex', flexWrap: 'wrap', gap: '1px', width: '100%' }}>
                   {selectedTag === "I worked on" && note.tags.map(tag => (
-                    <a key={`tag-${tag.id}`}>
-                      <span className="badge disabled bg-light rounded-pill" key={tag.id}>{tag.label}</span>
+                    <a key={`tag-${tag.label}`}>
+                      <span className="badge disabled bg-light rounded-pill" key={tag.label}>{tag.label}</span>
                     </a>
                   ))}
-                  {selectedTag !== "I worked on" && note.tags.map(tag => (
-                    <a key={`tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
-                      <span className="badge bg-light rounded-pill" key={tag.id}>{tag.label}</span>
+                  {selectedTag !== "I worked on" && note.tags && note.tags.map(tag => (
+                    <a key={`tag-${tag.label}`} onClick={() => handleTagClick(tag.label)}>
+                      <span className="badge bg-light rounded-pill" key={tag.label}>{enhanceNoteTitleOrTag(tag.label)}</span>
                     </a>
                   ))}
                 </div>
@@ -858,8 +912,8 @@ function App() {
           <label className="related-tags-label">&nbsp;&nbsp;&nbsp;Related tags:</label>
           <div className="related-tags">
             {allTags.map(tag => (
-              <a key={`sidebar-tag-${tag.id}`} onClick={() => handleTagClick(tag.label)}>
-                <span className="badge bg-light rounded-pill">{tag.label}</span>
+              <a key={`sidebar-tag-${tag.label}`} onClick={() => handleTagClick(tag.label)}>
+                <span className="badge bg-light rounded-pill">{enhanceNoteTitleOrTag(tag.label)}</span>
               </a>
             ))}
           </div>

@@ -10,40 +10,51 @@ body {
   overflow-y: scroll;
 }
 
+/* Base container setup */
 .container {
   display: block;
   width: 100%;
   padding: 0;
 }
 
+/* Main content */
 .main {
   padding: 0;
   margin-bottom: 1rem;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
+/* Sidebar hidden by default */
 .sidebar {
   padding: 1rem;
   padding-right: 0rem;
-  display: none; /* Hidden by default for mobile-first approach */
+  display: none;
 }
 
-/* Media query for tablets and small desktops (min-width: 600px) */
-@media (min-width: 600px) {
-  .container {
-      max-width: 100%;
-      margin: 0 auto;
-      padding: 0 1rem;
-  }
+/* Floating button: does not affect layout */
+.floating-button {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1000; /* Make sure it stays above other elements */
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
 }
 
-/* Media query for larger desktops (min-width: 900px) */
+/* Show sidebar on larger screens */
 @media (min-width: 900px) {
   .container {
       display: grid;
-      grid-template-columns: 3fr 1fr;
-      gap: 0rem;
+      grid-template-columns: 3fr 1fr; /* Set grid: main 3 parts, sidebar 1 part */
+      gap: 1rem; /* Adjust gap as needed */
       max-width: 1200px;
+      margin: 0 auto;
   }
 
   .main {
@@ -54,7 +65,6 @@ body {
       display: block; /* Show sidebar for larger screens */
   }
 }
-
 
 
 h1, h2, h3, h4, h5, h6 {
@@ -317,10 +327,10 @@ span.notes-header-link:hover {
   height: 40px;
   border: 0px;
   border-radius: 50%;
-  opacity: 0.66;
+  opacity: 0.25;
 }
 .scroll-to-top:hover {
-  opacity: 1;
+  opacity: 0.66;
 }
 
 .accordion-button {
@@ -765,10 +775,24 @@ body.dark-mode .p-button:focus {
 .searchlabel {
   width: 100%;
   position: relative;
+  margin-bottom: 0.5rem;
+  margin-left: -0.25rem;
+  scale: 0.96;
+  background-color: transparent;
+  border:#3a56e4 1px solid;
+}
+.dark-mode .searchlabel {
+  border:#d1d5db 1px solid;
+}
+.p-icon-field-left > .p-inputtext {
+  color: black;
+}
+.dark-mode .p-icon-field-left > .p-inputtext {
+  color: white;
 }
 
 .searchlabel:before {
-  content: '';
+  content: '  ';
   position: relative;
   z-index: 1;
   left: 36px;
@@ -780,6 +804,11 @@ body.dark-mode .p-button:focus {
 .dark-mode .searchlabel:before {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='rgba(255, 255, 255, 0.5)' width='25' height='25' viewBox='0 0 25 25' fill-rule='evenodd'%3E%3Cpath d='M16.036 18.455l2.404-2.405 5.586 5.587-2.404 2.404zM8.5 2C12.1 2 15 4.9 15 8.5S12.1 15 8.5 15 2 12.1 2 8.5 4.9 2 8.5 2zm0-2C3.8 0 0 3.8 0 8.5S3.8 17 8.5 17 17 13.2 17 8.5 13.2 0 8.5 0zM15 16a1 1 0 1 1 2 0 1 1 0 1 1-2 0'%3E%3C/path%3E%3C/svg%3E")
   center / contain no-repeat;
+}
+.p-icon-field-left > .p-input-icon:first-of-type {
+  left: 1.65rem;
+  top: 22px;
+  color: #6b7280;
 }
 
 .sui-search-box__submit {
@@ -806,7 +835,6 @@ body.dark-mode .p-button:focus {
 }
 .sui-search-box__wrapper {
   width: 100%;
-
 }
 .sui-search-box__text-input {
   border-radius: 8px;
@@ -1265,4 +1293,25 @@ button.undoredo:disabled i {
 
 .dark-mode ::-webkit-scrollbar-thumb {
   background-color: #555;
+}
+
+span.highlighted a {
+  background-color: rgb(200, 200, 0);
+  color: black;
+  text-decoration: none;
+}
+
+span.highlighted a:hover {
+  background-color: rgba(255, 165, 0, 0.1); 
+  color: darkblue;
+}
+
+.highlighted {
+  background-color: rgba(255, 255, 0, 0.9);
+  color: black;
+}
+
+.dark-mode .highlighted {
+  background-color: rgba(255, 255, 0, 0.9);
+  color: black;
 }

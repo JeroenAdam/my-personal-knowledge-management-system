@@ -3,10 +3,9 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-const ImageTextarea = ({ onTextChange, initialText, register, watch, setValue }) => {
+const ImageTextarea = ({ apiKey, onTextChange, initialText, register, watch, setValue }) => {
   const [text, setText] = useState(initialText); // State to control the Textarea input
   const [cursorPosition, setCursorPosition] = useState(0); // State to hold the cursor position
-  const apiKey = '';
   const fileInputRef = useRef(null); // UseRef to handle the dropzone file reference
 
   const textValue = watch('content');
