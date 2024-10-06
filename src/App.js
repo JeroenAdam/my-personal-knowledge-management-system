@@ -33,6 +33,7 @@ function App() {
   const publicUrl = 'http://localhost:3000';
   const apiKey = '';
   const elasticsearchUrl = '';
+  const elasticsearchIndexName = 'notes'
   const elasticsearchApiKey = '';
   const [notes, setNotes] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
@@ -680,7 +681,8 @@ function App() {
           <span className="slider round"></span>
        </label></header><br></br>
 
-      { elasticsearchApiKey !== '' && (<SearchBox query={query} elasticsearchApiKey={elasticsearchApiKey} elasticsearchUrl={elasticsearchUrl} setQuery={setQuery} setFilteredNotes={setFilteredNotes}/>) }
+      { elasticsearchApiKey !== '' && (<SearchBox query={query} elasticsearchApiKey={elasticsearchApiKey} elasticsearchUrl={elasticsearchUrl}
+        elasticsearchIndexName={elasticsearchIndexName} setQuery={setQuery} setFilteredNotes={setFilteredNotes}/>) }
 
       <Button
         label="Add Note"
@@ -728,7 +730,7 @@ function App() {
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
           />         
-          <ImageTextarea apiKey={apiKey} initialText={text} setValue={setValue} onTextChange={debouncedUpdateText} register={registerModal} watch={watch}/> 
+          <ImageTextarea backendUrl={backendUrl} apiKey={apiKey} initialText={text} setValue={setValue} onTextChange={debouncedUpdateText} register={registerModal} watch={watch}/> 
           <Chips
             style={{ width: '99%', borderRadius: '5px', marginTop: '4px' }}
             value={tags}

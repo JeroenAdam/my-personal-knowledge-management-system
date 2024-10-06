@@ -3,7 +3,7 @@ import { InputText } from 'primereact/inputtext';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 
-const SearchBox = ({ elasticsearchUrl, elasticsearchApiKey, query, setQuery, setFilteredNotes }) => {
+const SearchBox = ({ elasticsearchUrl, elasticsearchIndexName, elasticsearchApiKey, query, setQuery, setFilteredNotes }) => {
 
   const debounce = (func, delay) => {
     let timer;
@@ -74,7 +74,7 @@ const SearchBox = ({ elasticsearchUrl, elasticsearchApiKey, query, setQuery, set
       'Authorization': `ApiKey `+ elasticsearchApiKey,
     };
     try {
-      const response = await fetch(elasticsearchUrl + '/notes/_search', {
+      const response = await fetch(elasticsearchUrl + '/' + elasticsearchIndexName + '/_search', {
         method: 'POST',
         headers,
         body: JSON.stringify(searchBody),

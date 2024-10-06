@@ -3,7 +3,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 
-const ImageTextarea = ({ apiKey, onTextChange, initialText, register, watch, setValue }) => {
+const ImageTextarea = ({ backendUrl, apiKey, onTextChange, initialText, register, watch, setValue }) => {
   const [text, setText] = useState(initialText); // State to control the Textarea input
   const [cursorPosition, setCursorPosition] = useState(0); // State to hold the cursor position
   const fileInputRef = useRef(null); // UseRef to handle the dropzone file reference
@@ -19,7 +19,7 @@ const ImageTextarea = ({ apiKey, onTextChange, initialText, register, watch, set
       const formData = new FormData();
       formData.append('file', file); // Use 'file' as the key for formData
 
-      axios.post('http://localhost:8080/api/v1/upload', formData, {
+      axios.post( backendUrl.substring(0, backendUrl.lastIndexOf('/') + 1) + 'upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'X-API-KEY': apiKey,
