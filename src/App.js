@@ -187,7 +187,11 @@ function App() {
     });
     setLastSavedText(note.content);
     if (id) {setText(note.content); history.current.push(note.content); setCurrentIndex(0); } // set initial text for undo history
-  };  
+  };
+
+  const handleDialogShow = () => {
+    document.querySelector(isEditMode ? '#content' : '#title').focus();
+  };
 
   const handleDeleteNote = async (id) => {
     const noteToDelete = filteredNotes.find(n => n.id === id);
@@ -710,7 +714,7 @@ function App() {
           <h4>&nbsp;&nbsp;&nbsp;&nbsp;{needRerender && 'Filtering note by id: '+needRerender}  </h4><br></br>
         </div>
       )}      
-      <Dialog
+      <Dialog onShow={handleDialogShow}
         header={<CustomHeaderWithMenu label={isEditMode ? "Edit note" : "Create note"}
                   contextMenuItems={contextMenuItems} handleUndo={handleUndo} handleRedo={handleRedo} currentIndex={currentIndex} historyLength={history.current.length} lastSavedText={lastSavedText} />}
                   visible={isVisible}
@@ -725,7 +729,7 @@ function App() {
         <form onSubmit={handleSubmitModal(submit)}>
           <InputText
             style={{ width: '99%', borderRadius: '5px', marginTop: '4px', marginBottom: '4px' }}
-            name="title"
+            name="title" id="title"
             placeholder="Title"
             {...registerModal('title', { required: 'Required' })}
             className="p-inputtext-sm"
