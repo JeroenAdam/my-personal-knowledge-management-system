@@ -151,7 +151,7 @@ const ImageTextarea = ({ backendUrl, apiKey, onTextChange, initialText, register
   
         return matches.map((match, i) => {
           const videoSrc = match[0];
-          const thumbnailUrl = 'https://via.placeholder.com/100/000000/FFFFFF?text=Video';
+          const thumbnailUrl = 'https://placehold.co/100/000000/FFFFFF?text=Video';
   
           return (
             <div key={`${index}-${i}`} className="tooltip">
@@ -173,7 +173,7 @@ const ImageTextarea = ({ backendUrl, apiKey, onTextChange, initialText, register
     
         return matches.map((match, i) => {
           const audioSrc = match[0];
-          const thumbnailUrl = 'https://via.placeholder.com/100/000000/FFFFFF?text=Audio';
+          const thumbnailUrl = 'https://placehold.co/100/000000/FFFFFF?text=Audio';
     
           return (
             <div key={`${index}-${i}`} className="tooltip">
