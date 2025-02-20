@@ -145,7 +145,7 @@ curl -u elastic:password -X PUT "http://localhost:9200/_security/role/notes_role
   "indices": [
     {
       "names": ["notes"],
-      "privileges": ["read", "write", "view_index_metadata"]
+      "privileges": ["read", "view_index_metadata"]
     }
   ]
 }'
@@ -162,7 +162,7 @@ curl -u elastic:password -X POST "http://localhost:9200/_security/api_key" \
       "index": [
         {
           "names": ["notes"],
-          "privileges": ["read", "write", "view_index_metadata"]
+          "privileges": ["read", "view_index_metadata"]
         }
       ]
     }
